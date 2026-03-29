@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- ── SEO primario ─────────────────────────────────────────── -->
+    <title>Dolito — El precio real del dólar en Argentina</title>
+    <meta name="description" content="Cotizaciones del dólar en tiempo real: oficial, blue, MEP, CCL y cripto. El único sitio que muestra el MEP con comisiones reales por broker. Calculadoras y guía para invertir en Argentina." />
+    <meta name="keywords" content="dolar hoy, dolar blue, dolar mep, cotizacion dolar argentina, precio dolar, comprar dolares, dolar oficial, ccl, contado con liquidacion, tipo de cambio" />
+    <meta name="author" content="Dolito" />
+    <link rel="canonical" href="https://dolito.ar/" />
+
+    <!-- ── Open Graph ───────────────────────────────────────────── -->
+    <meta property="og:type"        content="website" />
+    <meta property="og:url"         content="https://dolito.ar/" />
+    <meta property="og:title"       content="Dolito — El precio real del dólar en Argentina" />
+    <meta property="og:description" content="Cotizaciones en tiempo real, MEP con comisiones reales por broker, calculadoras financieras y guía para invertir. Hecho para el argentino de a pie." />
+    <meta property="og:image"       content="https://dolito.ar/og-image.png" />
+    <meta property="og:locale"      content="es_AR" />
+    <meta property="og:site_name"   content="Dolito" />
+
+    <!-- ── Twitter Card ─────────────────────────────────────────── -->
+    <meta name="twitter:card"        content="summary_large_image" />
+    <meta name="twitter:title"       content="Dolito — El precio real del dólar" />
+    <meta name="twitter:description" content="MEP con comisiones reales, cotizaciones en vivo y guía para invertir en Argentina." />
+    <meta name="twitter:image"       content="https://dolito.ar/og-image.png" />
+
+    <!-- ── Favicon ──────────────────────────────────────────────── -->
+    <link rel="icon"             type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <meta name="theme-color" content="#0EC6A2" />
+    <meta name="theme-color" content="#0D1117" media="(prefers-color-scheme: dark)" />
+
+    <!-- ── Fuentes ──────────────────────────────────────────────── -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+    <!-- Dark mode init: evita FOUC (Flash of Unstyled Content) -->
+    <script>
+      (function () {
+        const stored = localStorage.getItem('dolito-theme')
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (stored === 'dark' || (!stored && prefersDark)) {
+          document.documentElement.classList.add('dark')
+        }
+      })()
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

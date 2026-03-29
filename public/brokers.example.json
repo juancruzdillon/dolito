@@ -1,0 +1,54 @@
+[
+  {
+    "id": "iol",
+    "name": "Invertir Online",
+    "shortName": "IOL",
+    "commissionBuy":  0.0030250,
+    "commissionSell": 0.0030250,
+    "color": "#1a56db",
+    "website": "https://invertironline.com",
+    "note": "0.25% + IVA (21%)",
+    "pros": ["Bajo costo", "Plataforma completa", "App móvil"],
+    "cons": ["Interfaz algo compleja para principiantes"],
+    "lastUpdated": "2025-03"
+  },
+  {
+    "id": "bullmarket",
+    "name": "Bull Market",
+    "shortName": "BMB",
+    "commissionBuy":  0.0030250,
+    "commissionSell": 0.0030250,
+    "color": "#057a55",
+    "website": "https://bullmarketbrokers.com",
+    "note": "0.25% + IVA (21%)",
+    "pros": ["Bajo costo", "Buena plataforma"],
+    "cons": ["Menos conocido"],
+    "lastUpdated": "2025-03"
+  },
+  {
+    "id": "cocos",
+    "name": "Cocos Capital",
+    "shortName": "Cocos",
+    "commissionBuy":  0.0060500,
+    "commissionSell": 0.0060500,
+    "color": "#7e3af2",
+    "website": "https://cocoscapital.com.ar",
+    "note": "0.50% + IVA (21%)",
+    "pros": ["App excelente", "UX moderna", "Ideal para principiantes"],
+    "cons": ["Comisiones más altas"],
+    "lastUpdated": "2025-03"
+  },
+  {
+    "id": "balanz",
+    "name": "Balanz",
+    "shortName": "Balanz",
+    "commissionBuy":  0.0060500,
+    "commissionSell": 0.0060500,
+    "color": "#e3a008",
+    "website": "https://balanz.com",
+    "note": "0.50% + IVA (21%)",
+    "pros": ["Reconocida", "Amplia oferta de productos"],
+    "cons": ["Comisiones más altas"],
+    "lastUpdated": "2025-03"
+  }
+]

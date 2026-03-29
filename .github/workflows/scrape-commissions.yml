@@ -1,0 +1,57 @@
+name: Actualizar comisiones de brokers
+
+on:
+  # Corre todos los días a las 8am hora Argentina (UTC-3 → 11am UTC)
+  schedule:
+    - cron: '0 11 * * *'
+
+  # También permite correrlo manualmente desde GitHub Actions tab
+  workflow_dispatch:
+
+permissions:
+  contents: write   # necesario para commitear brokers.json
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar dependencias (solo scripts)
+        run: npm ci --include=optional
+        # playwright se instala desde devDependencies
+
+      - name: Instalar browsers de Playwright (solo Chromium)
+        run: npx playwright install chromium --with-deps
+
+      - name: Correr scraper
+        run: node scripts/scrape-commissions.js
+
+      - name: Verificar si hubo cambios
+        id: diff
+        run: |
+          git diff --quiet public/brokers.json \
+            && echo "changed=false" >> $GITHUB_OUTPUT \
+            || echo "changed=true"  >> $GITHUB_OUTPUT
+
+      - name: Commitear brokers.json actualizado
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name  "dolito-bot"
+          git config user.email "bot@dolito.ar"
+          git add public/brokers.json
+          git commit -m "chore: actualizar comisiones de brokers [$(date '+%Y-%m-%d')]"
+          git push
+
+      - name: Sin cambios
+        if: steps.diff.outputs.changed == 'false'
+        run: echo "Las comisiones no cambiaron hoy."

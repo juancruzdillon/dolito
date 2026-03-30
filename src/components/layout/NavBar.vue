@@ -124,7 +124,7 @@
 
 <script setup>
 import { ref, inject } from 'vue'
-import { RefreshCw, Menu, X, Moon, Sun, Home, BarChart2, GitCompare, Calculator, BookOpen, Building } from 'lucide-vue-next'
+import { RefreshCw, Menu, X, Moon, Sun, Home, BarChart2, GitCompare, Calculator, BookOpen, Building, Globe, TrendingUp } from 'lucide-vue-next'
 import { useDolarStore } from '@/stores/dolar.js'
 
 const store      = useDolarStore()
@@ -138,6 +138,8 @@ const navLinks = [
   { to: '/comparar',     label: 'Comparar',     icon: GitCompare },
   { to: '/calculadoras', label: 'Calculadoras', icon: Calculator },
   { to: '/hipotecarios', label: 'Hipotecarios', icon: Building },
+  { to: '/rendimientos', label: 'Rendimientos',  icon: TrendingUp },
+  { to: '/monitor',      label: 'Mercados',     icon: Globe },
   { to: '/aprender',     label: 'Aprender',     icon: BookOpen },
 ]
 </script>

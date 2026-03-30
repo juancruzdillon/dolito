@@ -37,6 +37,18 @@ const routes = [
     component: () => import('../views/HipotecariosView.vue'),
     meta: { title: 'Créditos Hipotecarios UVA — Comparativa ' + new Date().getFullYear() }
   },
+  {
+    path: '/rendimientos',
+    name: 'rendimientos',
+    component: () => import('../views/RendimientosView.vue'),
+    meta: { title: 'Rendimientos — Billeteras, Fondos, Bonos y Plazo Fijo' }
+  },
+  {
+    path: '/monitor',
+    name: 'monitor',
+    component: () => import('../views/MonitorGlobalView.vue'),
+    meta: { title: 'Monitor Global — Mercados Mundiales en Tiempo Real' }
+  },
 ]
 
 export const router = createRouter({

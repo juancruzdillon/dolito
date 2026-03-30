@@ -710,7 +710,16 @@ const iclKeys = computed(() => {
   return Object.keys(iclData.value).sort((a,b) => dayjs(b, 'DD-MM-YYYY').diff(dayjs(a, 'DD-MM-YYYY')))
 })
 
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+
 onMounted(async () => {
+  // Handle tab from URL
+  if (route.query.tab && tabs.some(t => t.id === route.query.tab)) {
+    activeTab.value = route.query.tab
+  }
+
   loadingIndices.value = true
   try {
     const [iclRes, ipcRes] = await Promise.all([

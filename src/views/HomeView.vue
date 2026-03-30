@@ -59,6 +59,9 @@
       <!-- MEP -->
       <MEPSection />
 
+      <!-- Herramientas (Featured calculators) -->
+      <ToolsSection />
+
       <!-- Quick links -->
       <section class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <RouterLink
@@ -91,6 +94,7 @@ import { useDolarStore } from '@/stores/dolar.js'
 import BestRateBanner from '@/components/home/BestRateBanner.vue'
 import RateCard from '@/components/home/RateCard.vue'
 import MEPSection from '@/components/home/MEPSection.vue'
+import ToolsSection from '@/components/home/ToolsSection.vue'
 
 const store = useDolarStore()
 

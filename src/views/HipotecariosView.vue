@@ -380,8 +380,8 @@ const uvaChartData = computed(() => {
     cutoff.setMonth(cutoff.getMonth() - uvaRange.value)
     data = data.filter(d => new Date(d.fecha) >= cutoff)
   }
-  // Muestra un punto cada 15 días para no sobrecargar el gráfico
-  const sampled = data.filter((_, i) => i % 15 === 0)
+  // Un punto cada 15 días + siempre incluir el último
+  const sampled = data.filter((_, i, arr) => i % 15 === 0 || i === arr.length - 1)
   return {
     labels: sampled.map(d => {
       const [y, m] = d.fecha.split('-')

@@ -23,16 +23,16 @@
 
       <!-- Derecha: precios -->
       <div class="flex items-center gap-4 sm:gap-8 flex-wrap sm:flex-nowrap">
-        <div class="min-w-fit">
-          <p class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.15em] mb-1 text-white/60">Venta</p>
-          <p class="price-value text-3xl sm:text-4xl font-black text-white leading-none tracking-tighter">
-            {{ fmt(best.venta) }}
-          </p>
-        </div>
-        <div v-if="best.compra" class="pl-4 sm:pl-8 border-l border-white/20 min-w-fit">
+        <div v-if="best.compra" class="min-w-fit">
           <p class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.15em] mb-1 text-white/60">Compra</p>
           <p class="price-value text-xl sm:text-2xl font-black text-white/90 leading-none tracking-tighter">
             {{ fmt(best.compra) }}
+          </p>
+        </div>
+        <div class="min-w-fit" :class="best.compra ? 'pl-4 sm:pl-8 border-l border-white/20' : ''">
+          <p class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.15em] mb-1 text-white/60">Venta</p>
+          <p class="price-value text-3xl sm:text-4xl font-black text-white leading-none tracking-tighter">
+            {{ fmt(best.venta) }}
           </p>
         </div>
       </div>

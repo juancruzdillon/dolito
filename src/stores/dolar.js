@@ -2,18 +2,105 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import dayjs from 'dayjs'
 
-const CACHE_KEY = 'dolito_rates_cache'
+const CACHE_KEY = 'dolito_rates_cache_v2'
 const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutos
 
 // Mapeo de casas a nombres amigables
 export const DOLLAR_TYPES = {
   oficial:        { label: 'Oficial',       color: 'blue',    description: 'Tipo de cambio regulado por el BCRA' },
   blue:           { label: 'Blue',          color: 'slate',   description: 'Mercado informal (paralelo)' },
-  bolsa:          { label: 'MEP / Bolsa',   color: 'indigo',  description: 'Compra vía bonos en el mercado bursátil' },
-  contadoconliqui:{ label: 'CCL',           color: 'violet',  description: 'Contado con liquidación (para girar al exterior)' },
+  bolsa:          { label: 'MEP / Bolsa',   color: 'indigo',  description: 'Compra vía bonos en el mercado bursátil (AL30 24hs)' },
+  contadoconliqui:{ label: 'CCL',           color: 'violet',  description: 'Contado con liquidación (AL30 24hs)' },
   tarjeta:        { label: 'Tarjeta',       color: 'orange',  description: 'Compras en moneda extranjera con tarjeta' },
   mayorista:      { label: 'Mayorista',     color: 'teal',    description: 'Comercio exterior — solo para empresas' },
   cripto:         { label: 'Cripto',        color: 'purple',  description: 'Vía USDT/criptomonedas' },
+}
+
+/**
+ * Normaliza la respuesta de CriptoYa al formato interno:
+ * [{ casa, nombre, compra, venta }]
+ */
+function normalizeCriptoYa(data) {
+  const rates = []
+
+  // Oficial
+  if (data.oficial) {
+    rates.push({
+      casa: 'oficial',
+      nombre: 'Oficial',
+      compra: data.oficial.bid,
+      venta: data.oficial.ask,
+    })
+  }
+
+  // Blue
+  if (data.blue) {
+    rates.push({
+      casa: 'blue',
+      nombre: 'Blue',
+      compra: data.blue.bid,
+      venta: data.blue.ask,
+    })
+  }
+
+  // MEP (Bolsa) — usamos AL30 24hs como referencia principal
+  if (data.mep?.al30?.['24hs']) {
+    const mep = data.mep.al30['24hs']
+    // CriptoYa solo devuelve price para MEP, estimamos spread ~0.3%
+    const price = mep.price
+    rates.push({
+      casa: 'bolsa',
+      nombre: 'Bolsa',
+      compra: +(price * 0.997).toFixed(2),
+      venta: +(price * 1.003).toFixed(2),
+    })
+  }
+
+  // CCL — usamos AL30 24hs
+  if (data.ccl?.al30?.['24hs']) {
+    const ccl = data.ccl.al30['24hs']
+    const price = ccl.price
+    rates.push({
+      casa: 'contadoconliqui',
+      nombre: 'Contado con liquidación',
+      compra: +(price * 0.997).toFixed(2),
+      venta: +(price * 1.003).toFixed(2),
+    })
+  }
+
+  // Mayorista
+  if (data.mayorista) {
+    const price = data.mayorista.price
+    rates.push({
+      casa: 'mayorista',
+      nombre: 'Mayorista',
+      compra: +(price * 0.997).toFixed(2),
+      venta: +(price * 1.003).toFixed(2),
+    })
+  }
+
+  // Tarjeta
+  if (data.tarjeta) {
+    const price = data.tarjeta.price
+    rates.push({
+      casa: 'tarjeta',
+      nombre: 'Tarjeta',
+      compra: null,
+      venta: price,
+    })
+  }
+
+  // Cripto — usamos USDT
+  if (data.cripto?.usdt) {
+    rates.push({
+      casa: 'cripto',
+      nombre: 'Cripto',
+      compra: data.cripto.usdt.bid,
+      venta: data.cripto.usdt.ask,
+    })
+  }
+
+  return rates
 }
 
 export const useDolarStore = defineStore('dolar', () => {
@@ -82,15 +169,27 @@ export const useDolarStore = defineStore('dolar', () => {
     loading.value = true
     error.value = null
     try {
-      const res = await fetch('https://dolarapi.com/v1/dolares')
-      if (!res.ok) throw new Error('Error al obtener cotizaciones')
-      const data = await res.json()
+      // Fuente principal: CriptoYa (datos más precisos con compra/venta reales)
+      const res = await fetch('https://criptoya.com/api/dolar')
+      if (!res.ok) throw new Error('CriptoYa no disponible')
+      const raw = await res.json()
+      const data = normalizeCriptoYa(raw)
       rates.value = data
       lastUpdated.value = dayjs().format('HH:mm')
       saveToCache(data)
-    } catch (e) {
-      error.value = 'No se pudieron cargar las cotizaciones. Usando datos en caché si están disponibles.'
-      loadFromCache()
+    } catch {
+      // Fallback: dolarapi.com
+      try {
+        const res2 = await fetch('https://dolarapi.com/v1/dolares')
+        if (!res2.ok) throw new Error('Fallback no disponible')
+        const data2 = await res2.json()
+        rates.value = data2
+        lastUpdated.value = dayjs().format('HH:mm')
+        saveToCache(data2)
+      } catch {
+        error.value = 'No se pudieron cargar las cotizaciones. Usando datos en caché si están disponibles.'
+        loadFromCache()
+      }
     } finally {
       loading.value = false
     }

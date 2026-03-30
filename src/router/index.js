@@ -31,6 +31,12 @@ const routes = [
     component: () => import('../views/AprendizajeView.vue'),
     meta: { title: 'Aprender' }
   },
+  {
+    path: '/hipotecarios',
+    name: 'hipotecarios',
+    component: () => import('../views/HipotecariosView.vue'),
+    meta: { title: 'Hipotecarios' }
+  },
 ]
 
 export const router = createRouter({

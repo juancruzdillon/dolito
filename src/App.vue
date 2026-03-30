@@ -1,6 +1,8 @@
 <template>
   <div class="min-h-screen flex flex-col">
     <NavBar />
+    <RatesTickerBar />
+    <NewsTickerBar />
     <main class="flex-1">
       <RouterView />
     </main>
@@ -11,6 +13,8 @@
 <script setup>
 import { onMounted, provide, ref } from 'vue'
 import NavBar from './components/layout/NavBar.vue'
+import RatesTickerBar from './components/layout/RatesTickerBar.vue'
+import NewsTickerBar from './components/layout/NewsTickerBar.vue'
 import FooterBar from './components/layout/FooterBar.vue'
 import { useDolarStore } from './stores/dolar.js'
 import { useBrokersStore } from './stores/brokers.js'

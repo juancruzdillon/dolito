@@ -49,7 +49,10 @@
               <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">$</span>
               <input 
                 v-model.number="alq.monto" 
-                type="number" 
+                type="number"
+                max="999999999999"
+                min="0"
+                @input="alq.monto = Math.min(alq.monto || 0, 999999999999)"
                 class="w-full bg-slate-50 border border-slate-100 rounded-2xl h-14 pl-8 pr-6 text-lg font-bold text-slate-700 focus:bg-white focus:ring-2 focus:ring-[#34D399] transition-all"
                 placeholder="350000"
               />
@@ -70,9 +73,8 @@
             </div>
 
             <!-- Custom Calendar Popover (RESPONSIVE MODAL) -->
-            <Teleport to="body">
+            <Teleport to="body" v-if="showDatePicker">
               <div 
-                v-if="showDatePicker"
                 class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-0 sm:absolute sm:inset-auto sm:top-full sm:left-0 sm:mt-3 overflow-hidden"
                 :style="isMobile ? {} : datePickerDesktopStyle"
               >
@@ -201,21 +203,21 @@
 
       <!-- Results Brief -->
       <div v-if="calculatedResult" id="rental-result" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div class="bg-[#ECFDF5] p-6 rounded-2xl border border-emerald-100/50 text-center">
-          <p class="text-[9px] font-black uppercase tracking-widest text-[#065F46]/50 mb-2">Alquiler Proyectado</p>
-          <p class="text-xl font-black text-[#047857]">{{ fmt(calculatedResult.nuevoMonto) }}</p>
+        <div class="bg-[#ECFDF5] p-6 rounded-2xl border border-emerald-100/50 text-center overflow-hidden min-w-0">
+          <p class="text-[9px] font-black uppercase tracking-widest text-[#065F46]/50 mb-2 truncate">Alquiler Proyectado</p>
+          <p class="font-black text-[#047857] truncate" :class="priceTextClass(fmt(calculatedResult.nuevoMonto), 'text-xl')">{{ fmt(calculatedResult.nuevoMonto) }}</p>
         </div>
-        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 text-center">
-          <p class="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">Aumento Total</p>
-          <p class="text-xl font-black text-slate-700">+{{ calculatedResult.totalAumento.toFixed(1) }}%</p>
+        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 text-center overflow-hidden min-w-0">
+          <p class="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 truncate">Aumento Total</p>
+          <p class="font-black text-slate-700 truncate" :class="priceTextClass(calculatedResult.totalAumento.toFixed(1), 'text-xl')">+{{ calculatedResult.totalAumento.toFixed(1) }}%</p>
         </div>
-        <div class="bg-[#FEF2F2] p-6 rounded-2xl border border-red-100/50 text-center">
-          <p class="text-[9px] font-black uppercase tracking-widest text-[#991B1B]/50 mb-2">Dif. Mensual</p>
-          <p class="text-xl font-black text-[#B91C1C]">{{ fmt(calculatedResult.difMensual) }}</p>
+        <div class="bg-[#FEF2F2] p-6 rounded-2xl border border-red-100/50 text-center overflow-hidden min-w-0">
+          <p class="text-[9px] font-black uppercase tracking-widest text-[#991B1B]/50 mb-2 truncate">Dif. Mensual</p>
+          <p class="font-black text-[#B91C1C] truncate" :class="priceTextClass(fmt(calculatedResult.difMensual), 'text-xl')">{{ fmt(calculatedResult.difMensual) }}</p>
         </div>
-        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 text-center">
-          <p class="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">Próximos Ajustes</p>
-          <p class="text-xl font-black text-slate-700">{{ calculatedResult.proxAjustes }}</p>
+        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 text-center overflow-hidden min-w-0">
+          <p class="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 truncate">Próximos Ajustes</p>
+          <p class="text-xl font-black text-slate-700 truncate">{{ calculatedResult.proxAjustes }}</p>
         </div>
       </div>
 
@@ -238,7 +240,10 @@
                 class="border-b border-slate-50 last:border-0 hover:bg-slate-50/30 transition-colors"
                 :class="p.isAdjustmentMonth ? 'bg-emerald-50/30' : ''"
               >
-                <td class="px-6 py-4 text-xs font-bold text-slate-600 uppercase">{{ p.fecha }}</td>
+                <td class="px-6 py-4 text-xs font-bold text-slate-600 uppercase flex items-center gap-2">
+                  {{ p.fecha }}
+                  <span v-if="p.isProjected" class="text-[7px] bg-[#34D399]/10 text-[#047857] px-1.5 py-0.5 rounded-full tracking-widest font-black">PROYECTADO</span>
+                </td>
                 <td v-if="alq.indice === 'ipc'" class="px-6 py-4 text-xs font-medium text-slate-400">{{ p.ipcMes ? p.ipcMes.toFixed(1) + '%' : '-' }}</td>
                 <td class="px-6 py-4 text-xs font-black" :class="p.isAdjustmentMonth ? 'text-[#047857]' : 'text-slate-800'">
                   {{ fmt(p.rent) }}
@@ -260,13 +265,13 @@
       <div class="mt-16 text-center">
         <p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-8">Compartir esta calculadora</p>
         <div class="flex justify-center gap-6">
-          <button class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-[#3B5998] hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all">
+          <button @click="share('facebook')" class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-[#3B5998] hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all">
             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"></path></svg>
           </button>
-          <button class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-black hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all">
+          <button @click="share('twitter')" class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-black hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all">
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
           </button>
-          <button class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-[#25D366] hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all">
+          <button @click="share('whatsapp')" class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-[#25D366] hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all">
             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"></path></svg>
           </button>
         </div>
@@ -285,12 +290,12 @@
             <label class="block text-xs font-medium mb-1.5" :style="{ color: 'var(--text-2)' }">Pesos a invertir</label>
             <div class="relative">
               <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm" :style="{ color: 'var(--text-3)' }">$</span>
-              <input v-model.number="mep.amount" type="number" class="input-field pl-7" min="1000" />
+              <input v-model.number="mep.amount" type="number" max="999999999999" min="0" @input="mep.amount = Math.min(mep.amount || 0, 999999999999)" class="input-field pl-7" placeholder="Monto en pesos" />
             </div>
           </div>
           <div>
             <label class="block text-xs font-medium mb-1.5" :style="{ color: 'var(--text-2)' }">Cotización MEP mercado (venta)</label>
-            <input v-model.number="mep.marketRate" type="number" class="input-field" placeholder="ej. 1200" />
+            <input v-model.number="mep.marketRate" type="number" max="9999999" min="0" @input="mep.marketRate = Math.min(mep.marketRate || 0, 9999999)" class="input-field" placeholder="ej. 1200" />
           </div>
         </div>
 
@@ -298,26 +303,24 @@
           <div
             v-for="(r, i) in mepBrokerResults"
             :key="r.broker.id"
-            class="rounded-xl border p-4"
+            class="relative rounded-xl border p-4 min-w-0 flex flex-col justify-between"
             :style="i === 0
               ? { borderColor: 'rgba(52,211,153,.35)', background: 'var(--green-bg)' }
               : { borderColor: 'var(--border)' }"
           >
-            <span v-if="i === 0" class="text-[10px] font-bold uppercase tracking-wide" :style="{ color: 'var(--green)' }">★ Mejor opción</span>
-            <p class="font-semibold text-sm mt-1" :style="{ color: r.broker.color }">{{ r.broker.name }}</p>
-            <p class="price-value text-2xl font-bold mt-1" :style="{ color: 'var(--text)' }">{{ fmtUSD(r.receivedUSD) }}</p>
-            <div class="mt-2 space-y-1 text-xs">
-              <div class="flex justify-between" :style="{ color: 'var(--text-3)' }">
-                <span>Tipo de cambio real:</span>
-                <span class="font-mono font-semibold">{{ fmt(r.effectiveRate) }}</span>
+            <div>
+              <span v-if="i === 0" class="absolute -top-2.5 left-4 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full z-10" :style="{ background: 'var(--green)', color: '#fff' }">★ Mejor opción</span>
+              <p class="font-semibold text-sm mt-1 truncate" :style="{ color: r.broker.color }">{{ r.broker.name }}</p>
+              <p class="price-value font-bold mt-1 truncate" :class="priceTextClass(fmtUSD(r.receivedUSD))" :style="{ color: 'var(--text)' }">{{ fmtUSD(r.receivedUSD) }}</p>
+            </div>
+            <div class="mt-3 space-y-2 text-[10px]">
+              <div class="flex flex-wrap justify-between items-baseline gap-x-2 border-t pt-2" :style="{ color: 'var(--text-3)', borderColor: 'var(--border)' }">
+                <span class="truncate opacity-70">TC Real:</span>
+                <span class="font-mono font-bold truncate text-xs">{{ fmt(r.effectiveRate) }}</span>
               </div>
-              <div class="flex justify-between" :style="{ color: 'var(--red)' }">
-                <span>Costo comisión:</span>
-                <span class="font-mono">{{ fmt(r.commissionImpact) }}</span>
-              </div>
-              <div class="flex justify-between" :style="{ color: 'var(--text-3)' }">
-                <span>Spread:</span>
-                <span>{{ r.spreadPct.toFixed(3) }}%</span>
+              <div class="flex flex-wrap justify-between items-baseline gap-x-2" :style="{ color: 'var(--red)' }">
+                <span class="truncate opacity-70">Comisión:</span>
+                <span class="font-mono font-bold truncate text-xs">{{ fmt(r.commissionImpact) }}</span>
               </div>
             </div>
           </div>
@@ -336,20 +339,20 @@
             <label class="block text-xs font-medium mb-1.5" :style="{ color: 'var(--text-2)' }">Capital inicial</label>
             <div class="relative">
               <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm" :style="{ color: 'var(--text-3)' }">$</span>
-              <input v-model.number="pf.capital" type="number" class="input-field pl-7" min="1000" />
+              <input v-model.number="pf.capital" type="number" max="999999999999" min="0" @input="pf.capital = Math.min(pf.capital || 0, 999999999999)" class="input-field pl-7" placeholder="Monto" />
             </div>
           </div>
           <div>
             <label class="block text-xs font-medium mb-1.5" :style="{ color: 'var(--text-2)' }">TNA (%)</label>
             <div class="relative">
-              <input v-model.number="pf.tna" type="number" class="input-field pr-7" step="0.1" />
+              <input v-model.number="pf.tna" type="number" max="9999" min="0" @input="pf.tna = Math.min(pf.tna || 0, 9999)" class="input-field pr-7" step="0.1" placeholder="ej. 40" />
               <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm" :style="{ color: 'var(--text-3)' }">%</span>
             </div>
           </div>
           <div>
             <label class="block text-xs font-medium mb-1.5" :style="{ color: 'var(--text-2)' }">Días</label>
             <div class="flex gap-2">
-              <input v-model.number="pf.dias" type="number" class="input-field" min="1" max="365" />
+              <input v-model.number="pf.dias" type="number" max="3650" min="1" @input="pf.dias = Math.min(pf.dias || 1, 3650)" class="input-field" placeholder="ej. 30" />
               <div class="flex gap-1 flex-shrink-0">
                 <button v-for="d in [30,60,90,180]" :key="d" @click="pf.dias = d"
                   class="px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors"
@@ -364,21 +367,21 @@
         </div>
 
         <div v-if="pfResult" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="rounded-xl border p-4 text-center" :style="{ background: 'var(--brand-bg)', borderColor: 'rgba(14,164,122,.25)' }">
-            <p class="text-xs uppercase tracking-wide mb-1" :style="{ color: 'var(--brand)' }">Total al vencer</p>
-            <p class="price-value text-2xl font-bold" :style="{ color: 'var(--brand)' }">{{ fmt(pfResult.total) }}</p>
+          <div class="rounded-xl border p-4 text-center overflow-hidden min-w-0" :style="{ background: 'var(--brand-bg)', borderColor: 'rgba(14,164,122,.25)' }">
+            <p class="text-xs uppercase tracking-wide mb-1 truncate" :style="{ color: 'var(--brand)' }">Total al vencer</p>
+            <p class="price-value font-bold truncate" :class="priceTextClass(fmt(pfResult.total))" :style="{ color: 'var(--brand)' }">{{ fmt(pfResult.total) }}</p>
           </div>
-          <div class="rounded-xl border p-4 text-center" :style="{ background: 'var(--green-bg)', borderColor: 'rgba(52,211,153,.25)' }">
-            <p class="text-xs uppercase tracking-wide mb-1" :style="{ color: 'var(--green)' }">Intereses ganados</p>
-            <p class="price-value text-2xl font-bold" :style="{ color: 'var(--green)' }">{{ fmt(pfResult.intereses) }}</p>
+          <div class="rounded-xl border p-4 text-center overflow-hidden min-w-0" :style="{ background: 'var(--green-bg)', borderColor: 'rgba(52,211,153,.25)' }">
+            <p class="text-xs uppercase tracking-wide mb-1 truncate" :style="{ color: 'var(--green)' }">Intereses ganados</p>
+            <p class="price-value font-bold truncate" :class="priceTextClass(fmt(pfResult.intereses))" :style="{ color: 'var(--green)' }">{{ fmt(pfResult.intereses) }}</p>
           </div>
-          <div class="rounded-xl border p-4 text-center" :style="{ background: 'var(--surface-2)', borderColor: 'var(--border)' }">
-            <p class="text-xs uppercase tracking-wide mb-1" :style="{ color: 'var(--text-3)' }">TEA</p>
-            <p class="price-value text-2xl font-bold" :style="{ color: 'var(--text)' }">{{ pfResult.tea.toFixed(2) }}%</p>
+          <div class="rounded-xl border p-4 text-center overflow-hidden min-w-0" :style="{ background: 'var(--surface-2)', borderColor: 'var(--border)' }">
+            <p class="text-xs uppercase tracking-wide mb-1 truncate" :style="{ color: 'var(--text-3)' }">TEA</p>
+            <p class="price-value text-2xl font-bold truncate" :style="{ color: 'var(--text)' }">{{ pfResult.tea.toFixed(1) }}%</p>
           </div>
-          <div class="rounded-xl border p-4 text-center" :style="{ background: 'var(--surface-2)', borderColor: 'var(--border)' }">
-            <p class="text-xs uppercase tracking-wide mb-1" :style="{ color: 'var(--text-3)' }">Rendimiento período</p>
-            <p class="price-value text-2xl font-bold" :style="{ color: 'var(--text)' }">{{ pfResult.rendPeriodo.toFixed(3) }}%</p>
+          <div class="rounded-xl border p-4 text-center overflow-hidden min-w-0" :style="{ background: 'var(--surface-2)', borderColor: 'var(--border)' }">
+            <p class="text-xs uppercase tracking-wide mb-1 truncate" :style="{ color: 'var(--text-3)' }">Rendimiento</p>
+            <p class="price-value text-2xl font-bold truncate" :style="{ color: 'var(--text)' }">{{ pfResult.rendPeriodo.toFixed(2) }}%</p>
           </div>
         </div>
 
@@ -410,39 +413,39 @@
             <label class="block text-xs font-medium mb-1.5" :style="{ color: 'var(--text-2)' }">Monto a invertir (ARS)</label>
             <div class="relative">
               <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm" :style="{ color: 'var(--text-3)' }">$</span>
-              <input v-model.number="lecap.monto" type="number" class="input-field pl-7" />
+              <input v-model.number="lecap.monto" type="number" max="999999999999" min="0" @input="lecap.monto = Math.min(lecap.monto || 0, 999999999999)" class="input-field pl-7" placeholder="Monto" />
             </div>
           </div>
           <div>
             <label class="block text-xs font-medium mb-1.5" :style="{ color: 'var(--text-2)' }">Precio de compra (% del VN)</label>
             <div class="relative">
-              <input v-model.number="lecap.precio" type="number" class="input-field pr-7" step="0.01" placeholder="ej. 95.5" />
+              <input v-model.number="lecap.precio" type="number" max="999" min="0" @input="lecap.precio = Math.min(lecap.precio || 0, 999)" class="input-field pr-7" step="0.01" placeholder="ej. 95.5" />
               <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm" :style="{ color: 'var(--text-3)' }">%</span>
             </div>
-            <p class="text-[10px] mt-1" :style="{ color: 'var(--text-3)' }">100% = par · menor precio = mayor rendimiento</p>
+            <p class="text-[10px] mt-1 truncate" :style="{ color: 'var(--text-3)' }">100% = par · menor precio = mayor rendimiento</p>
           </div>
           <div>
             <label class="block text-xs font-medium mb-1.5" :style="{ color: 'var(--text-2)' }">Días al vencimiento</label>
-            <input v-model.number="lecap.dias" type="number" class="input-field" min="1" placeholder="ej. 90" />
+            <input v-model.number="lecap.dias" type="number" max="3650" min="1" @input="lecap.dias = Math.min(lecap.dias || 1, 3650)" class="input-field" placeholder="ej. 90" />
           </div>
         </div>
 
         <div v-if="lecapResult" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="rounded-xl border p-4 text-center" :style="{ background: 'var(--brand-bg)', borderColor: 'rgba(14,164,122,.25)' }">
-            <p class="text-xs uppercase tracking-wide mb-1" :style="{ color: 'var(--brand)' }">Valor nominal obtenido</p>
-            <p class="price-value text-2xl font-bold" :style="{ color: 'var(--brand)' }">{{ fmt(lecapResult.vnTotal) }}</p>
+          <div class="rounded-xl border p-4 text-center overflow-hidden min-w-0" :style="{ background: 'var(--brand-bg)', borderColor: 'rgba(14,164,122,.25)' }">
+            <p class="text-xs uppercase tracking-wide mb-1 truncate" :style="{ color: 'var(--brand)' }">VN obtenido</p>
+            <p class="price-value font-bold truncate" :class="priceTextClass(fmt(lecapResult.vnTotal))" :style="{ color: 'var(--brand)' }">{{ fmt(lecapResult.vnTotal) }}</p>
           </div>
-          <div class="rounded-xl border p-4 text-center" :style="{ background: 'var(--green-bg)', borderColor: 'rgba(52,211,153,.25)' }">
-            <p class="text-xs uppercase tracking-wide mb-1" :style="{ color: 'var(--green)' }">Ganancia</p>
-            <p class="price-value text-2xl font-bold" :style="{ color: 'var(--green)' }">{{ fmt(lecapResult.ganancia) }}</p>
+          <div class="rounded-xl border p-4 text-center overflow-hidden min-w-0" :style="{ background: 'var(--green-bg)', borderColor: 'rgba(52,211,153,.25)' }">
+            <p class="text-xs uppercase tracking-wide mb-1 truncate" :style="{ color: 'var(--green)' }">Ganancia</p>
+            <p class="price-value font-bold truncate" :class="priceTextClass(fmt(lecapResult.ganancia))" :style="{ color: 'var(--green)' }">{{ fmt(lecapResult.ganancia) }}</p>
           </div>
-          <div class="rounded-xl border p-4 text-center" :style="{ background: 'var(--surface-2)', borderColor: 'var(--border)' }">
-            <p class="text-xs uppercase tracking-wide mb-1" :style="{ color: 'var(--text-3)' }">TIR anual (TNA)</p>
-            <p class="price-value text-2xl font-bold" :style="{ color: 'var(--text)' }">{{ lecapResult.tirAnual.toFixed(2) }}%</p>
+          <div class="rounded-xl border p-4 text-center overflow-hidden min-w-0" :style="{ background: 'var(--surface-2)', borderColor: 'var(--border)' }">
+            <p class="text-xs uppercase tracking-wide mb-1 truncate" :style="{ color: 'var(--text-3)' }">TNA</p>
+            <p class="price-value text-2xl font-bold truncate" :style="{ color: 'var(--text)' }">{{ lecapResult.tirAnual.toFixed(1) }}%</p>
           </div>
-          <div class="rounded-xl border p-4 text-center" :style="{ background: 'var(--surface-2)', borderColor: 'var(--border)' }">
-            <p class="text-xs uppercase tracking-wide mb-1" :style="{ color: 'var(--text-3)' }">TEA</p>
-            <p class="price-value text-2xl font-bold" :style="{ color: 'var(--text)' }">{{ lecapResult.tea.toFixed(2) }}%</p>
+          <div class="rounded-xl border p-4 text-center overflow-hidden min-w-0" :style="{ background: 'var(--surface-2)', borderColor: 'var(--border)' }">
+            <p class="text-xs uppercase tracking-wide mb-1 truncate" :style="{ color: 'var(--text-3)' }">TEA</p>
+            <p class="price-value text-2xl font-bold truncate" :style="{ color: 'var(--text)' }">{{ lecapResult.tea.toFixed(1) }}%</p>
           </div>
         </div>
       </div>
@@ -458,41 +461,41 @@
           <div>
             <label class="block text-xs font-medium mb-1.5" :style="{ color: 'var(--text-2)' }">Precio de compra (% del VN)</label>
             <div class="relative">
-              <input v-model.number="bono.precio" type="number" class="input-field pr-7" step="0.01" placeholder="ej. 45" />
+              <input v-model.number="bono.precio" type="number" max="999" min="0" @input="bono.precio = Math.min(bono.precio || 0, 999)" class="input-field pr-7" step="0.01" placeholder="ej. 45" />
               <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm" :style="{ color: 'var(--text-3)' }">%</span>
             </div>
           </div>
           <div>
             <label class="block text-xs font-medium mb-1.5" :style="{ color: 'var(--text-2)' }">Cupón anual (% del VN)</label>
             <div class="relative">
-              <input v-model.number="bono.cupon" type="number" class="input-field pr-7" step="0.01" placeholder="ej. 8.75" />
+              <input v-model.number="bono.cupon" type="number" max="999" min="0" @input="bono.cupon = Math.min(bono.cupon || 0, 999)" class="input-field pr-7" step="0.01" placeholder="ej. 8.75" />
               <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm" :style="{ color: 'var(--text-3)' }">%</span>
             </div>
           </div>
           <div>
             <label class="block text-xs font-medium mb-1.5" :style="{ color: 'var(--text-2)' }">Años al vencimiento</label>
-            <input v-model.number="bono.anios" type="number" class="input-field" min="0.1" step="0.1" placeholder="ej. 5" />
+            <input v-model.number="bono.anios" type="number" max="99" min="0.1" @input="bono.anios = Math.min(bono.anios || 0.1, 99)" class="input-field" step="0.1" placeholder="ej. 5" />
           </div>
         </div>
 
         <div v-if="bonoResult" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <div class="rounded-xl border p-4 text-center" :style="{ background: 'var(--brand-bg)', borderColor: 'rgba(14,164,122,.25)' }">
-            <p class="text-xs uppercase tracking-wide mb-1" :style="{ color: 'var(--brand)' }">Rendimiento corriente</p>
+          <div class="rounded-xl border p-4 text-center overflow-hidden min-w-0" :style="{ background: 'var(--brand-bg)', borderColor: 'rgba(14,164,122,.25)' }">
+            <p class="text-xs uppercase tracking-wide mb-1 truncate" :style="{ color: 'var(--brand)' }">Current Yield</p>
             <p class="price-value text-2xl font-bold" :style="{ color: 'var(--brand)' }">{{ bonoResult.currentYield.toFixed(2) }}%</p>
-            <p class="text-[10px] mt-1" :style="{ color: 'var(--text-3)' }">Cupón anual / Precio pagado</p>
+            <p class="text-[10px] mt-1 truncate" :style="{ color: 'var(--text-3)' }">Cupón / Precio</p>
           </div>
-          <div class="rounded-xl border p-4 text-center" :style="{ background: 'var(--green-bg)', borderColor: 'rgba(52,211,153,.25)' }">
-            <p class="text-xs uppercase tracking-wide mb-1" :style="{ color: 'var(--green)' }">TIR estimada (YTM)</p>
+          <div class="rounded-xl border p-4 text-center overflow-hidden min-w-0" :style="{ background: 'var(--green-bg)', borderColor: 'rgba(52,211,153,.25)' }">
+            <p class="text-xs uppercase tracking-wide mb-1 truncate" :style="{ color: 'var(--green)' }">TIR estimada (YTM)</p>
             <p class="price-value text-2xl font-bold" :style="{ color: 'var(--green)' }">{{ bonoResult.ytm.toFixed(2) }}%</p>
-            <p class="text-[10px] mt-1" :style="{ color: 'var(--text-3)' }">Rendimiento al vencimiento</p>
+            <p class="text-[10px] mt-1 truncate" :style="{ color: 'var(--text-3)' }">Al vencimiento</p>
           </div>
-          <div class="rounded-xl border p-4 text-center" :style="{ background: 'var(--surface-2)', borderColor: 'var(--border)' }">
-            <p class="text-xs uppercase tracking-wide mb-1" :style="{ color: 'var(--text-3)' }">Upside vs par</p>
-            <p class="price-value text-2xl font-bold"
+          <div class="rounded-xl border p-4 text-center overflow-hidden min-w-0" :style="{ background: 'var(--surface-2)', borderColor: 'var(--border)' }">
+            <p class="text-xs uppercase tracking-wide mb-1 truncate" :style="{ color: 'var(--text-3)' }">Upside vs par</p>
+            <p class="price-value text-2xl font-bold truncate"
                :style="{ color: bonoResult.upside > 0 ? 'var(--green)' : 'var(--red)' }">
               {{ bonoResult.upside > 0 ? '+' : '' }}{{ bonoResult.upside.toFixed(2) }}%
             </p>
-            <p class="text-[10px] mt-1" :style="{ color: 'var(--text-3)' }">Si vence al 100% del VN</p>
+            <p class="text-[10px] mt-1 truncate" :style="{ color: 'var(--text-3)' }">vs Par ($100)</p>
           </div>
         </div>
 
@@ -514,58 +517,52 @@
             <label class="block text-xs font-medium mb-1.5" :style="{ color: 'var(--text-2)' }">Capital original</label>
             <div class="relative">
               <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm" :style="{ color: 'var(--text-3)' }">$</span>
-              <input v-model.number="inf.capital" type="number" class="input-field pl-7" />
+              <input v-model.number="inf.capital" type="number" max="999999999999" min="0" @input="inf.capital = Math.min(inf.capital || 0, 999999999999)" class="input-field pl-7" placeholder="Monto" />
             </div>
           </div>
           <div>
             <label class="block text-xs font-medium mb-1.5" :style="{ color: 'var(--text-2)' }">Inflación del período (%)</label>
             <div class="relative">
-              <input v-model.number="inf.inflacion" type="number" class="input-field pr-7" step="0.1" placeholder="ej. 211" />
+              <input v-model.number="inf.inflacion" type="number" max="99999" min="0" @input="inf.inflacion = Math.min(inf.inflacion || 0, 99999)" class="input-field pr-7" step="0.1" placeholder="ej. 211" />
               <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm" :style="{ color: 'var(--text-3)' }">%</span>
             </div>
           </div>
           <div>
             <label class="block text-xs font-medium mb-1.5" :style="{ color: 'var(--text-2)' }">Rendimiento obtenido (%)</label>
             <div class="relative">
-              <input v-model.number="inf.rendimiento" type="number" class="input-field pr-7" step="0.1" placeholder="ej. 190" />
+              <input v-model.number="inf.rendimiento" type="number" max="99999" min="0" @input="inf.rendimiento = Math.min(inf.rendimiento || 0, 99999)" class="input-field pr-7" step="0.1" placeholder="ej. 190" />
               <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-sm" :style="{ color: 'var(--text-3)' }">%</span>
             </div>
           </div>
         </div>
 
         <div v-if="infResult" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div class="rounded-xl border p-4 text-center" :style="{ background: 'var(--surface-2)', borderColor: 'var(--border)' }">
-            <p class="text-xs uppercase tracking-wide mb-1" :style="{ color: 'var(--text-3)' }">Valor actualizado</p>
-            <p class="price-value text-xl font-bold" :style="{ color: 'var(--text)' }">{{ fmt(infResult.valorActualizado) }}</p>
-            <p class="text-[10px] mt-1" :style="{ color: 'var(--text-3)' }">Para mantener poder adquisitivo</p>
+          <div class="rounded-xl border p-4 text-center overflow-hidden min-w-0" :style="{ background: 'var(--surface-2)', borderColor: 'var(--border)' }">
+            <p class="text-xs uppercase tracking-wide mb-1 truncate" :style="{ color: 'var(--text-3)' }">V. Actualizado</p>
+            <p class="price-value font-bold truncate" :class="priceTextClass(fmt(infResult.valorActualizado), 'text-xl')" :style="{ color: 'var(--text)' }">{{ fmt(infResult.valorActualizado) }}</p>
           </div>
-          <div class="rounded-xl border p-4 text-center" :style="{ background: 'var(--surface-2)', borderColor: 'var(--border)' }">
-            <p class="text-xs uppercase tracking-wide mb-1" :style="{ color: 'var(--text-3)' }">Capital final</p>
-            <p class="price-value text-xl font-bold" :style="{ color: 'var(--text)' }">{{ fmt(infResult.capitalFinal) }}</p>
-            <p class="text-[10px] mt-1" :style="{ color: 'var(--text-3)' }">Con tu rendimiento aplicado</p>
+          <div class="rounded-xl border p-4 text-center overflow-hidden min-w-0" :style="{ background: 'var(--surface-2)', borderColor: 'var(--border)' }">
+            <p class="text-xs uppercase tracking-wide mb-1 truncate" :style="{ color: 'var(--text-3)' }">Capital Final</p>
+            <p class="price-value font-bold truncate" :class="priceTextClass(fmt(infResult.capitalFinal), 'text-xl')" :style="{ color: 'var(--text)' }">{{ fmt(infResult.capitalFinal) }}</p>
           </div>
           <div
-            class="rounded-xl border p-4 text-center"
+            class="rounded-xl border p-4 text-center overflow-hidden min-w-0"
             :style="infResult.rendimientoReal >= 0
               ? { background: 'var(--green-bg)', borderColor: 'rgba(52,211,153,.25)' }
               : { background: 'var(--red-bg)', borderColor: 'rgba(220,38,38,.25)' }"
           >
-            <p class="text-xs uppercase tracking-wide mb-1"
+            <p class="text-xs uppercase tracking-wide mb-1 truncate"
               :style="{ color: infResult.rendimientoReal >= 0 ? 'var(--green)' : 'var(--red)' }">
-              Rendimiento real
+              Rendimiento
             </p>
-            <p class="price-value text-xl font-bold"
+            <p class="price-value font-bold truncate" :class="priceTextClass(infResult.rendimientoReal.toFixed(1) + '%', 'text-xl')"
               :style="{ color: infResult.rendimientoReal >= 0 ? 'var(--green)' : 'var(--red)' }">
-              {{ infResult.rendimientoReal >= 0 ? '+' : '' }}{{ infResult.rendimientoReal.toFixed(2) }}%
-            </p>
-            <p class="text-[10px] mt-1"
-              :style="{ color: infResult.rendimientoReal >= 0 ? 'var(--green)' : 'var(--red)' }">
-              {{ infResult.rendimientoReal >= 0 ? '✓ Ganaste contra la inflación' : '✗ Perdiste poder adquisitivo' }}
+              {{ infResult.rendimientoReal >= 0 ? '+' : '' }}{{ infResult.rendimientoReal.toFixed(1) }}%
             </p>
           </div>
-          <div class="rounded-xl border p-4 text-center" :style="{ background: 'var(--surface-2)', borderColor: 'var(--border)' }">
-            <p class="text-xs uppercase tracking-wide mb-1" :style="{ color: 'var(--text-3)' }">Ganancia/pérdida real</p>
-            <p class="price-value text-xl font-bold"
+          <div class="rounded-xl border p-4 text-center overflow-hidden min-w-0" :style="{ background: 'var(--surface-2)', borderColor: 'var(--border)' }">
+            <p class="text-xs uppercase tracking-wide mb-1 truncate" :style="{ color: 'var(--text-3)' }">Dif. Real</p>
+            <p class="price-value font-bold truncate" :class="priceTextClass(fmt(infResult.diferenciaReal), 'text-xl')"
               :style="{ color: infResult.diferenciaReal >= 0 ? 'var(--green)' : 'var(--red)' }">
               {{ fmt(infResult.diferenciaReal) }}
             </p>
@@ -581,6 +578,10 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import dayjs from 'dayjs'
 import 'dayjs/locale/es'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+
+dayjs.extend(customParseFormat)
+dayjs.locale('es')
 import { 
   CalendarIcon, 
   ChevronLeftIcon, 
@@ -609,6 +610,7 @@ const tabs = [
   { id: 'inflacion',   label: 'Inflación' },
 ]
 const activeTab = ref('alquiler')
+
 
 // ── CUSTOM DATE PICKER LOGIC ──────────────────────
 const showDatePicker = ref(false)
@@ -704,6 +706,10 @@ const ipcData = ref({})
 const loadingIndices = ref(false)
 const calculatedResult = ref(null)
 
+const iclKeys = computed(() => {
+  return Object.keys(iclData.value).sort((a,b) => dayjs(b, 'DD-MM-YYYY').diff(dayjs(a, 'DD-MM-YYYY')))
+})
+
 onMounted(async () => {
   loadingIndices.value = true
   try {
@@ -723,6 +729,15 @@ onMounted(async () => {
 
 const calculateRentTable = ref([])
 
+// Watch for index change to reset results
+watch(() => alq.value.indice, () => {
+  calculatedResult.value = null
+  calculateRentTable.value = []
+  // Clear any active picker states
+  showDatePicker.value = false
+  pickerMode.value = 'days'
+}, { deep: true })
+
 const calculateRent = () => {
   const { monto, fechaInicio, frecuencia, indice } = alq.value
   if (!monto || !fechaInicio || !frecuencia) return
@@ -738,19 +753,33 @@ const calculateRent = () => {
   let iterDate = start
 
   // Generate month by month data
+  const lastIclVal = iclKeys.value.length > 0 ? iclData.value[iclKeys.value[0]] : null
+  const lastIpcVal = ipcData.value.length > 0 ? ipcData.value[ipcData.value.length - 1]?.valor : null
+
   while (iterDate.isBefore(now)) {
     const isAdjustmentMonth = iterDate.isSame(nextAdjustDate, 'month')
     let adjustmentPct = 0
+    let isProjected = false
 
     if (isAdjustmentMonth) {
       let multiplier = 1
       if (indice === 'icl') {
-        const valStart = iclData.value[lastAdjustDate.format('01-MM-YYYY')] || iclData.value[lastAdjustDate.format('DD-MM-YYYY')]
-        const valEnd = iclData.value[nextAdjustDate.format('01-MM-YYYY')] || iclData.value[nextAdjustDate.format('DD-MM-YYYY')]
+        const getIcl = (d) => iclData.value[d.format('01-MM-YYYY')] || iclData.value[d.format('DD-MM-YYYY')] || iclData.value[d.format('D-M-YYYY')]
+        let valStart = getIcl(lastAdjustDate)
+        let valEnd = getIcl(nextAdjustDate)
+
+        if (!valEnd) { valEnd = lastIclVal; isProjected = true }
+        if (!valStart) { valStart = lastIclVal }
+
         if (valStart && valEnd) multiplier = valEnd / valStart
       } else {
-        const valStart = ipcData.value.find(i => i.fecha.startsWith(lastAdjustDate.format('YYYY-MM')))?.valor
-        const valEnd = ipcData.value.find(i => i.fecha.startsWith(nextAdjustDate.format('YYYY-MM')))?.valor
+        const getIpc = (d) => ipcData.value.find(i => i.fecha.startsWith(d.format('YYYY-MM')))?.valor
+        let valStart = getIpc(lastAdjustDate)
+        let valEnd = getIpc(nextAdjustDate)
+
+        if (valEnd === undefined) { valEnd = lastIpcVal; isProjected = true }
+        if (valStart === undefined) { valStart = lastIpcVal }
+
         if (valStart !== undefined && valEnd !== undefined) multiplier = valEnd / valStart
       }
       
@@ -762,17 +791,15 @@ const calculateRent = () => {
       nextAdjustDate = nextAdjustDate.add(frecuencia, 'month')
     }
 
-    // Indices for this specific month (for display in table)
-    let ipcMes = 0
-    if (indice === 'ipc') {
-        ipcMes = ipcData.value.find(i => i.fecha.startsWith(iterDate.format('YYYY-MM')))?.valor || 0
-    }
+    // Check if this specific month entry is in the future
+    const isFutureMonth = iterDate.isAfter(dayjs(), 'month')
 
     periods.push({
       fecha: iterDate.format('MMM YYYY'),
       rent: currentRent,
       adjustment: adjustmentPct,
       isAdjustmentMonth,
+      isProjected: isProjected || isFutureMonth,
       isStart: iterDate.isSame(start, 'month')
     })
 
@@ -885,8 +912,45 @@ const infResult = computed(() => {
   return { valorActualizado, capitalFinal, rendimientoReal, diferenciaReal }
 })
 
-const fmt    = n => n !== undefined ? new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n) : '—'
-const fmtUSD = n => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
+const fmt = (n, forceDecimals = false) => {
+  if (n === undefined || n === null) return '—'
+  const dec = (forceDecimals || Math.abs(n) < 10000) ? 2 : 0
+  return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0, maximumFractionDigits: dec }).format(n)
+}
+const fmtUSD = (n, forceDecimals = false) => {
+  if (n === undefined || n === null) return '—'
+  const dec = (forceDecimals || Math.abs(n) < 10000) ? 2 : 0
+  return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: dec }).format(n)
+}
+
+const priceTextClass = (val, base = 'text-2xl') => {
+  const s = String(val)
+  if (s.length > 14) return 'text-lg'
+  if (s.length > 11) return 'text-xl'
+  return base
+}
+
+const share = (platform) => {
+  const url = encodeURIComponent(window.location.origin + window.location.pathname)
+  const text = encodeURIComponent('Calculadora de Alquileres (ICL/IPC) - Dolito')
+  let shareUrl = ''
+
+  if (platform === 'facebook') {
+    // Facebook sharer is strictly for URLs
+    shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`
+  } else if (platform === 'twitter') {
+    shareUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`
+  } else if (platform === 'whatsapp') {
+    shareUrl = `https://wa.me/?text=${text}%20${url}`
+  }
+
+  if (shareUrl) {
+    const w = 600; const h = 400
+    const left = (window.screen.width / 2) - (w / 2)
+    const top = (window.screen.height / 2) - (h / 2)
+    window.open(shareUrl, 'share', `width=${w},height=${h},top=${top},left=${left},toolbar=no,menubar=no,scrollbars=no,resizable=no,location=no,directories=no,status=no`)
+  }
+}
 </script>
 
 <style scoped>

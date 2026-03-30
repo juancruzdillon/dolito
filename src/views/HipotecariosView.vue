@@ -57,11 +57,11 @@
           </div>
           <div class="w-32">
             <label class="text-[11px] font-semibold uppercase tracking-wide block mb-1.5" style="color: var(--text-3);">Tasa máx (%)</label>
-            <input v-model.number="store.filters.maxTna" type="number" step="0.5" placeholder="Ej: 8" class="input-field py-2 text-sm" />
+            <input v-model.number="store.filters.maxTna" type="number" step="0.5" max="99" min="0" @input="store.filters.maxTna = Math.min(store.filters.maxTna || 0, 99)" placeholder="Ej: 8" class="input-field py-2 text-sm" />
           </div>
           <div class="w-32">
             <label class="text-[11px] font-semibold uppercase tracking-wide block mb-1.5" style="color: var(--text-3);">Mín financia (%)</label>
-            <input v-model.number="store.filters.minFinancing" type="number" placeholder="Ej: 75" class="input-field py-2 text-sm" />
+            <input v-model.number="store.filters.minFinancing" type="number" max="100" min="0" @input="store.filters.minFinancing = Math.min(store.filters.minFinancing || 0, 100)" placeholder="Ej: 75" class="input-field py-2 text-sm" />
           </div>
           <button @click="resetFilters(); bankSearch = ''" class="btn-ghost py-2" title="Limpiar filtros">
             <RefreshCcw :size="14" />
@@ -105,10 +105,10 @@
             </div>
           </div>
 
-          <div class="flex-shrink-0 text-right">
-            <p class="price-value text-xl font-bold" style="color: var(--brand);">{{ (bank.tna || 0).toFixed(1) }}%</p>
+          <div class="flex-shrink-0 text-right overflow-hidden min-w-0">
+            <p class="price-value font-bold truncate" :class="priceTextClass((bank.tna || 0).toFixed(1) + '%', 'text-xl')" style="color: var(--brand);">{{ (bank.tna || 0).toFixed(1) }}%</p>
             <p class="text-[10px] font-medium" style="color: var(--text-3);">TNA</p>
-            <p v-if="bank.updatedAt" class="text-[10px] mt-0.5" :style="{ color: isStale(bank.updatedAt) ? 'var(--amber)' : 'var(--text-3)' }" :title="isStale(bank.updatedAt) ? 'El banco no actualizó esta tasa en más de 30 días' : ''">{{ bank.updatedAt }}</p>
+            <p v-if="bank.updatedAt" class="text-[10px] mt-0.5 truncate" :style="{ color: isStale(bank.updatedAt) ? 'var(--amber)' : 'var(--text-3)' }" :title="isStale(bank.updatedAt) ? 'El banco no actualizó esta tasa en más de 30 días' : ''">{{ bank.updatedAt }}</p>
           </div>
         </div>
 
@@ -208,7 +208,7 @@
           <!-- Amount -->
           <div>
             <label class="text-[11px] font-semibold uppercase tracking-wide block mb-1.5" style="color: var(--text-3);">Monto del préstamo (ARS)</label>
-            <input v-model.number="calc.amount" type="number" placeholder="Ej: 50000000" class="input-field text-sm" />
+            <input v-model.number="calc.amount" type="number" max="999999999999" min="0" @input="calc.amount = Math.min(calc.amount || 0, 999999999999)" placeholder="Ej: 50000000" class="input-field text-sm" />
             <button
               @click="calc.showUsdHelper = !calc.showUsdHelper"
               class="mt-2 text-xs flex items-center gap-1.5 transition-colors"
@@ -220,23 +220,23 @@
 
             <div v-if="calc.showUsdHelper" class="mt-3 p-4 rounded-xl border space-y-3" style="background: var(--surface-2); border-color: var(--border);">
               <label class="text-[11px] font-semibold uppercase tracking-wide block" style="color: var(--text-3);">Valor de la propiedad (USD)</label>
-              <input v-model.number="calc.houseUsd" type="number" placeholder="0" class="input-field text-sm" />
+              <input v-model.number="calc.houseUsd" type="number" max="999999999999" min="0" @input="calc.houseUsd = Math.min(calc.houseUsd || 0, 999999999999)" placeholder="0" class="input-field text-sm" />
               <div class="grid grid-cols-2 gap-2">
                 <button
                   @click="applyArsValue(arsFromUsd.oficial)"
                   class="text-left p-3 rounded-lg border transition-colors"
                   style="border-color: var(--border); background: var(--surface);"
                 >
-                  <p class="text-[10px] font-semibold uppercase tracking-wide mb-0.5" style="color: var(--text-3);">Tipo oficial</p>
-                  <p class="text-sm font-bold price-value" style="color: var(--brand);">{{ fmtCurrencyNoDec(arsFromUsd.oficial) }}</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-wide mb-0.5 truncate" style="color: var(--text-3);">Tipo oficial</p>
+                  <p class="font-bold price-value truncate" :class="priceTextClass(fmtCurrencyNoDecAuto(arsFromUsd.oficial), 'text-sm')" style="color: var(--brand);">{{ fmtCurrencyNoDecAuto(arsFromUsd.oficial) }}</p>
                 </button>
                 <button
                   @click="applyArsValue(arsFromUsd.mep)"
-                  class="text-left p-3 rounded-lg border transition-colors"
+                  class="text-left p-3 rounded-lg border transition-colors overflow-hidden min-w-0"
                   style="border-color: var(--border); background: var(--surface);"
                 >
-                  <p class="text-[10px] font-semibold uppercase tracking-wide mb-0.5" style="color: var(--text-3);">Tipo MEP</p>
-                  <p class="text-sm font-bold price-value" style="color: var(--brand);">{{ fmtCurrencyNoDec(arsFromUsd.mep) }}</p>
+                  <p class="text-[10px] font-semibold uppercase tracking-wide mb-0.5 truncate" style="color: var(--text-3);">Tipo MEP</p>
+                  <p class="font-bold price-value truncate" :class="priceTextClass(fmtCurrencyNoDecAuto(arsFromUsd.mep), 'text-sm')" style="color: var(--brand);">{{ fmtCurrencyNoDecAuto(arsFromUsd.mep) }}</p>
                 </button>
               </div>
             </div>
@@ -265,21 +265,21 @@
           <!-- Results -->
           <div class="border-t pt-4" style="border-color: var(--border);">
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <div class="p-3 rounded-xl" style="background: var(--surface-2);">
-                <p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: var(--text-3);">Cuota mensual</p>
-                <p class="price-value text-sm font-bold" style="color: var(--brand);">${{ fmtCurrencyNoDec(monthlyPaymentARS) }}</p>
+              <div class="p-3 rounded-xl overflow-hidden min-w-0" style="background: var(--surface-2);">
+                <p class="text-[10px] font-semibold uppercase tracking-wide mb-1 truncate" style="color: var(--text-3);">Cuota mensual</p>
+                <p class="price-value font-bold truncate" :class="priceTextClass('$' + fmtCurrencyNoDecAuto(monthlyPaymentARS), 'text-sm')" style="color: var(--brand);">${{ fmtCurrencyNoDecAuto(monthlyPaymentARS) }}</p>
               </div>
-              <div class="p-3 rounded-xl" style="background: var(--surface-2);">
-                <p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: var(--text-3);">UVAs/mes</p>
-                <p class="price-value text-sm font-bold">{{ Math.round(monthlyPaymentUVA) }}</p>
+              <div class="p-3 rounded-xl overflow-hidden min-w-0" style="background: var(--surface-2);">
+                <p class="text-[10px] font-semibold uppercase tracking-wide mb-1 truncate" style="color: var(--text-3);">UVAs/mes</p>
+                <p class="price-value font-bold truncate" :class="priceTextClass(String(Math.round(monthlyPaymentUVA)), 'text-sm')">{{ Math.round(monthlyPaymentUVA) }}</p>
               </div>
-              <div class="p-3 rounded-xl" style="background: var(--surface-2);">
-                <p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: var(--text-3);">Finaliza en</p>
-                <p class="price-value text-sm font-bold">{{ endYear }}</p>
+              <div class="p-3 rounded-xl overflow-hidden min-w-0" style="background: var(--surface-2);">
+                <p class="text-[10px] font-semibold uppercase tracking-wide mb-1 truncate" style="color: var(--text-3);">Finaliza en</p>
+                <p class="price-value text-sm font-bold truncate">{{ endYear }}</p>
               </div>
-              <div class="p-3 rounded-xl" style="background: var(--surface-2);">
-                <p class="text-[10px] font-semibold uppercase tracking-wide mb-1" style="color: var(--text-3);">Valor UVA</p>
-                <p class="price-value text-sm font-bold">${{ Math.round(store.uvaValue) }}</p>
+              <div class="p-3 rounded-xl overflow-hidden min-w-0" style="background: var(--surface-2);">
+                <p class="text-[10px] font-semibold uppercase tracking-wide mb-1 truncate" style="color: var(--text-3);">Valor UVA</p>
+                <p class="price-value font-bold truncate" :class="priceTextClass('$' + Math.round(store.uvaValue), 'text-sm')">${{ Math.round(store.uvaValue) }}</p>
               </div>
             </div>
             <p class="text-[10px] mt-3" style="color: var(--text-3);">Simulación informativa. Consultá con tu banco para condiciones definitivas.</p>
@@ -456,9 +456,17 @@ function resetFilters() {
   store.sortBy = 'tna'
 }
 
-function fmtCurrencyNoDec(val) {
+function fmtCurrencyNoDecAuto(val) {
   if (!val) return '0'
-  return new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(val)
+  const dec = Math.abs(val) < 10000 ? 2 : 0
+  return new Intl.NumberFormat('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: dec }).format(val)
+}
+
+const priceTextClass = (val, base = 'text-2xl') => {
+  const s = String(val)
+  if (s.length > 14) return 'text-lg'
+  if (s.length > 11) return 'text-xl'
+  return base
 }
 
 function getLogoUrl(filename) {

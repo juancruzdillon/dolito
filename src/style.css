@@ -226,7 +226,25 @@
 
   .section-title    { @apply text-2xl font-bold; color: var(--text); }
   .section-subtitle { color: var(--text-3); @apply text-sm mt-0.5; }
-  .price-value      { @apply font-mono font-semibold tabular-nums; }
+  .price-value      { 
+    @apply font-mono font-semibold tabular-nums; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+}
+
+/* Hide spin buttons for Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Hide spin buttons for Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
 }
 
 /* ── Scrollbar ───────────────────────────────────────────────────────────── */

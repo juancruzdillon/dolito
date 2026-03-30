@@ -54,17 +54,17 @@
       </div>
 
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div
-          v-for="result in mepResults"
-          :key="result.broker.id"
-          class="rounded-xl border p-4"
-          :class="result === mepResults[0] ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200'"
-        >
-          <p class="text-xs font-semibold mb-1" :style="{ color: result.broker.color }">{{ result.broker.name }}</p>
-          <p class="price-value text-xl font-bold text-slate-900">{{ fmt(result.effectiveRate) }}</p>
-          <p class="text-xs text-slate-400 mt-1">+{{ result.spreadPct.toFixed(2) }}% spread</p>
-          <p class="text-xs text-slate-500">{{ result.broker.note }}</p>
-        </div>
+          <div
+            v-for="result in mepResults"
+            :key="result.broker.id"
+            class="rounded-xl border p-4 overflow-hidden min-w-0"
+            :class="result === mepResults[0] ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200'"
+          >
+            <p class="text-xs font-semibold mb-1 truncate" :style="{ color: result.broker.color }">{{ result.broker.name }}</p>
+            <p class="price-value font-bold text-slate-900 truncate" :class="priceTextClass(fmt(result.effectiveRate), 'text-xl')">{{ fmt(result.effectiveRate) }}</p>
+            <p class="text-xs text-slate-400 mt-1 truncate">+{{ result.spreadPct.toFixed(2) }}% spread</p>
+            <p class="text-[10px] text-slate-500 truncate" :title="result.broker.note">{{ result.broker.note }}</p>
+          </div>
       </div>
     </div>
 
@@ -78,29 +78,29 @@
         <div
           v-for="rate in ratesWithData"
           :key="rate.casa"
-          class="rounded-xl border border-slate-200 p-4"
+          class="rounded-xl border border-slate-200 p-4 overflow-hidden min-w-0 text-center"
         >
-          <p class="text-xs font-medium text-slate-500 mb-1">{{ DOLLAR_TYPES[rate.casa]?.label || rate.nombre }}</p>
-          <p class="price-value text-2xl font-bold text-slate-900">
+          <p class="text-[10px] font-medium text-slate-500 mb-1 truncate">{{ DOLLAR_TYPES[rate.casa]?.label || rate.nombre }}</p>
+          <p class="price-value font-bold text-slate-900 truncate" :class="priceTextClass(fmtUSD(100000 / rate.venta))">
             {{ fmtUSD(100000 / rate.venta) }}
           </p>
-          <p class="text-[10px] text-slate-400 mt-0.5">USD con $100.000</p>
+          <p class="text-[9px] text-slate-400 mt-0.5 truncate">USD con $100.000</p>
         </div>
 
         <!-- MEP por broker -->
         <div
           v-for="result in mepResults"
           :key="'mep-' + result.broker.id"
-          class="rounded-xl border p-4"
+          class="rounded-xl border p-4 overflow-hidden min-w-0 text-center"
           :class="result === mepResults[0] ? 'border-brand-300 bg-brand-50' : 'border-slate-200 bg-slate-50'"
         >
-          <p class="text-xs font-medium mb-1" :style="{ color: result.broker.color }">
+          <p class="text-[10px] font-medium mb-1 truncate" :style="{ color: result.broker.color }">
             MEP · {{ result.broker.shortName }}
           </p>
-          <p class="price-value text-2xl font-bold text-slate-900">
+          <p class="price-value font-bold text-slate-900 truncate" :class="priceTextClass(fmtUSD(result.receivedUSD))">
             {{ fmtUSD(result.receivedUSD) }}
           </p>
-          <p class="text-[10px] text-slate-400 mt-0.5">USD netos con $100.000</p>
+          <p class="text-[9px] text-slate-400 mt-0.5 truncate">USD netos con $100.000</p>
         </div>
       </div>
     </div>
@@ -149,6 +149,21 @@ const brechaColor = rate => {
   return 'text-slate-500'
 }
 
-const fmt    = n => n ? new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 }).format(n) : '—'
-const fmtUSD = n => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
+const fmt = (n, forceDecimals = false) => {
+  if (!n) return '—'
+  const dec = (forceDecimals || Math.abs(n) < 1000) ? 2 : 0
+  return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0, maximumFractionDigits: dec }).format(n)
+}
+const fmtUSD = (n, forceDecimals = false) => {
+  if (!n) return '—'
+  const dec = (forceDecimals || Math.abs(n) < 1000) ? 2 : 0
+  return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: dec }).format(n)
+}
+
+const priceTextClass = (val, base = 'text-2xl') => {
+  const s = String(val)
+  if (s.length > 14) return 'text-lg'
+  if (s.length > 11) return 'text-xl'
+  return base
+}
 </script>

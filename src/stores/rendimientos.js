@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import scrapedData from '../data/rendimientos-live.json'
+
 
 const localLogo = (file) => new URL(`../assets/images/logos/${file}`, import.meta.url).href
 const cb = (domain) => `https://logo.clearbit.com/${domain}`
@@ -53,18 +53,15 @@ export const useRendimientosStore = defineStore('rendimientos', () => {
   const error = ref(null)
 
   // ── Billeteras ────────────────────────────────────────────────────────────────
-  // Defaults, overridden by scraped data from rendimientos-live.json when available
-  const _scrapedBilleteras = Object.fromEntries(
-    (scrapedData.billeteras || []).filter(b => b.tna != null).map(b => [b.id, b.tna])
-  )
+  // Defaults — updated at runtime from /rendimientos-live.json (run npm run update:rend)
   const billeteras = ref([
-    { id: 'mercadopago', name: 'Mercado Pago', institution: 'Mercado Libre', badge: 'Fondo', logo: localLogo('bmercadopago.png'), color: '#00B1EA', limit: null, tna: _scrapedBilleteras.mercadopago ?? 28.00 },
-    { id: 'carrefour', name: 'Carrefour Banco', institution: 'Carrefour', badge: 'Billetera', logo: localLogo('bcarrefour.png'), color: '#E42313', limit: '$4 M', tna: _scrapedBilleteras.carrefour ?? 27.00 },
-    { id: 'fiwind', name: 'Fiwind', institution: 'Fiwind', badge: 'Billetera', logo: localLogo('bfiwind.png'), color: '#F5A623', limit: '$750 K', tna: _scrapedBilleteras.fiwind ?? 23.00 },
-    { id: 'uala', name: 'Ualá', institution: 'Ualá', badge: 'Billetera', logo: localLogo('buala.png'), color: '#5C1BE3', limit: '$1 M', tna: _scrapedBilleteras.uala ?? 23.00 },
-    { id: 'personal', name: 'Personal Pay', institution: 'Telecom', badge: 'Billetera', logo: localLogo('bppay.jpg'), color: '#FF6B00', limit: '$3 M', tna: _scrapedBilleteras.personal ?? 23.00 },
-    { id: 'naranjax', name: 'Naranja X', institution: 'Naranja', badge: 'Billetera', logo: localLogo('bnaranjax.jpg'), color: '#FF6B35', limit: '$4 M', tna: _scrapedBilleteras.naranjax ?? 23.00 },
-    { id: 'brubank', name: 'Brubank', institution: 'Brubank', badge: 'Billetera', logo: localLogo('bbrubank.svg'), color: '#0066FF', limit: null, tna: _scrapedBilleteras.brubank ?? 22.00 },
+    { id: 'mercadopago', name: 'Mercado Pago', institution: 'Mercado Libre', badge: 'Fondo', logo: localLogo('bmercadopago.png'), color: '#00B1EA', limit: null, tna: null },
+    { id: 'carrefour', name: 'Carrefour Banco', institution: 'Carrefour', badge: 'Billetera', logo: localLogo('bcarrefour.png'), color: '#E42313', limit: '$4 M', tna: null },
+    { id: 'fiwind', name: 'Fiwind', institution: 'Fiwind', badge: 'Billetera', logo: localLogo('bfiwind.png'), color: '#F5A623', limit: '$750 K', tna: null },
+    { id: 'uala', name: 'Ualá', institution: 'Ualá', badge: 'Billetera', logo: localLogo('buala.png'), color: '#5C1BE3', limit: '$1 M', tna: null },
+    { id: 'personal', name: 'Personal Pay', institution: 'Telecom', badge: 'Billetera', logo: localLogo('bppay.jpg'), color: '#FF6B00', limit: '$3 M', tna: null },
+    { id: 'naranjax', name: 'Naranja X', institution: 'Naranja', badge: 'Billetera', logo: localLogo('bnaranjax.jpg'), color: '#FF6B35', limit: '$4 M', tna: null },
+    { id: 'brubank', name: 'Brubank', institution: 'Brubank', badge: 'Billetera', logo: localLogo('bbrubank.svg'), color: '#0066FF', limit: null, tna: null },
   ])
 
   // ── Especiales ────────────────────────────────────────────────────────────────
@@ -187,44 +184,58 @@ export const useRendimientosStore = defineStore('rendimientos', () => {
     loading.value = true
     error.value = null
     try {
-      const r = await fetch('/api/rendimientos')
-      if (!r.ok) throw new Error(`HTTP ${r.status}`)
-      const data = await r.json()
-
-      // Plazo Fijo: build ENTIRE list from live BCRA data
-      if (data.plazoFijo?.length) {
-        plazofijo.value = data.plazoFijo.map((bank, i) => {
-          const meta = pfMetaFor(bank.entidad)
-          return {
-            id:   `pf-${i}`,
-            name: shortName(bank.entidad),
-            logo: meta.logo || bank.logo || null,  // local → BCRA logo → null
-            color: meta.color,
-            tna:  bank.tnaClientes,
+      // 1. Fetch billeteras from static JSON (public/rendimientos-live.json)
+      try {
+        const lr = await fetch('/rendimientos-live.json?_t=' + Date.now())
+        if (lr.ok) {
+          const liveData = await lr.json()
+          if (liveData.billeteras?.length) {
+            for (const live of liveData.billeteras) {
+              if (live.tna == null) continue
+              const match = billeteras.value.find(b => b.id === live.id)
+              if (match) match.tna = live.tna
+            }
+            // Sort by tna desc
+            billeteras.value = [...billeteras.value].sort((a, b) => (b.tna ?? 0) - (a.tna ?? 0))
           }
-        })
-      }
-
-      // Billeteras: update TNAs from live rendimientos
-      if (data.billeteras?.length) {
-        for (const live of data.billeteras) {
-          const lower = live.entidad.toLowerCase()
-          const match = billeteras.value.find(b =>
-            lower.includes(b.id) || lower.includes(b.name.toLowerCase())
-          )
-          if (match) match.tna = live.tna
+          if (liveData.lastUpdated) {
+            const d = new Date(liveData.lastUpdated)
+            lastUpdated.value = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+          }
         }
+      } catch (e) {
+        console.warn('[rendimientos] rendimientos-live.json not available:', e.message)
       }
 
-      // Fecha de actualización
-      if (data.lastUpdated) {
-        const d = new Date(data.lastUpdated)
-        lastUpdated.value = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      // 2. Fetch plazo fijo from API (BCRA via ArgentinaDatos)
+      try {
+        const r = await fetch('/api/rendimientos')
+        if (r.ok) {
+          const data = await r.json()
+          if (data.plazoFijo?.length) {
+            plazofijo.value = data.plazoFijo.map((bank, i) => {
+              const meta = pfMetaFor(bank.entidad)
+              return {
+                id:   `pf-${i}`,
+                name: shortName(bank.entidad),
+                logo: meta.logo || bank.logo || null,
+                color: meta.color,
+                tna:  bank.tnaClientes,
+              }
+            })
+          }
+          if (data.lastUpdated) {
+            const d = new Date(data.lastUpdated)
+            lastUpdated.value = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+          }
+        }
+      } catch (e) {
+        console.warn('[rendimientos] API failed:', e.message)
       }
 
     } catch (e) {
       error.value = e.message
-      console.warn('[rendimientos] fetchAll failed, usando datos estáticos:', e.message)
+      console.warn('[rendimientos] fetchAll failed:', e.message)
       lastUpdated.value = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
     } finally {
       loading.value = false

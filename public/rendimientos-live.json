@@ -1,0 +1,55 @@
+{
+  "billeteras": [
+    {
+      "id": "mercadopago",
+      "name": "Mercado Pago",
+      "tna": 21.7,
+      "scraped": true,
+      "lastChecked": "2026-03-30T20:06:59.880Z"
+    },
+    {
+      "id": "carrefour",
+      "name": "Carrefour Banco",
+      "tna": 27,
+      "scraped": true,
+      "lastChecked": "2026-03-30T20:06:59.880Z"
+    },
+    {
+      "id": "fiwind",
+      "name": "Fiwind",
+      "tna": 23,
+      "scraped": true,
+      "lastChecked": "2026-03-30T20:06:59.880Z"
+    },
+    {
+      "id": "uala",
+      "name": "Ualá",
+      "tna": 23,
+      "scraped": true,
+      "lastChecked": "2026-03-30T20:06:59.880Z"
+    },
+    {
+      "id": "personal",
+      "name": "Personal Pay",
+      "tna": 21.1,
+      "scraped": true,
+      "lastChecked": "2026-03-30T20:06:59.880Z"
+    },
+    {
+      "id": "naranjax",
+      "name": "Naranja X",
+      "tna": 22,
+      "scraped": true,
+      "lastChecked": "2026-03-30T20:06:59.880Z"
+    },
+    {
+      "id": "brubank",
+      "name": "Brubank",
+      "tna": 23.39,
+      "scraped": true,
+      "lastChecked": "2026-03-30T20:06:59.880Z"
+    }
+  ],
+  "fondos": [],
+  "lastUpdated": "2026-03-30T20:06:59.880Z"
+}

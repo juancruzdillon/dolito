@@ -15,7 +15,7 @@ import { fileURLToPath } from 'url'
 import path from 'path'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const OUTPUT = path.join(__dirname, '../src/data/rendimientos-live.json')
+const OUTPUT = path.join(__dirname, '../public/rendimientos-live.json')
 
 const VALID_IDS = ['mercadopago', 'carrefour', 'fiwind', 'uala', 'personal', 'naranjax', 'brubank']
 

@@ -37,11 +37,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
-    <!-- Dark mode init: solo carga oscuro si el usuario lo eligió explícitamente -->
+    <!-- Dark mode init: aplica tema antes del primer render para evitar flash -->
     <script>
       (function () {
         const stored = localStorage.getItem('dolito-theme')
-        if (stored === 'dark') {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (stored === 'dark' || (!stored && prefersDark)) {
           document.documentElement.classList.add('dark')
         }
       })()

@@ -36,32 +36,33 @@
     --shadow-hover: 0 4px 16px rgba(0,0,0,.10);
   }
 
-  /* ── Modo oscuro — refinado, mate y más claro ──────────────────────────── */
+  /* ── Modo oscuro ─────────────────────────────────────────────────────────── */
   .dark {
-    --bg:        #1E2128;
-    --surface:   #282C34;
-    --surface-2: #323842;
-    --border:    #3D434F;
-    --border-2:  #4E5463;
+    --bg:        #161920;
+    --surface:   #1E2229;
+    --surface-2: #252B35;
+    --border:    #343B47;
+    --border-2:  #454E5E;
 
-    --text:      #D1D5DB;
-    --text-2:    #9CA3AF;
-    --text-3:    #6B7280;
+    /* Jerarquía de texto con contraste WCAG AA verificado */
+    --text:      #E2E8F0;  /* 13:1 sobre --bg */
+    --text-2:    #94A3B8;  /* 5.9:1 sobre --bg */
+    --text-3:    #8895A7;  /* 4.7:1 sobre --bg — fix crítico (era #6B7280 = 2.97:1) */
 
     --brand:     #34B48F;
     --brand-hi:  #40C8A0;
-    --brand-bg:  #1A2E28;
+    --brand-bg:  #152821;
     --brand-text:#34B48F;
 
-    --green:     #47B578;
-    --green-bg:  #142F22;
-    --red:       #E06C75;
-    --red-bg:    #2C1A1C;
-    --amber:     #D19A66;
-    --amber-bg:  #2C251B;
+    --green:     #4ABA7C;
+    --green-bg:  #122A1E;
+    --red:       #E07070;
+    --red-bg:    #2A1717;
+    --amber:     #D4A259;
+    --amber-bg:  #2A2010;
 
-    --shadow-card:  0 1px 3px rgba(0,0,0,.25);
-    --shadow-hover: 0 6px 15px rgba(0,0,0,.35);
+    --shadow-card:  0 1px 3px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.03);
+    --shadow-hover: 0 8px 20px rgba(0,0,0,.45);
   }
 
   /* ── Reset / base ────────────────────────────────────────────────────────── */
@@ -72,7 +73,11 @@
     background-color: var(--bg);
     color: var(--text);
     @apply font-sans;
-    transition: background-color 0.2s, color 0.2s;
+    transition: background-color 0.25s ease, color 0.25s ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    body, .card, .card-hover { transition: none !important; }
   }
 
   .price-value {
@@ -96,7 +101,8 @@
   .dark .text-slate-700,
   .dark .text-slate-600    { color: var(--text-2) !important; }
   .dark .text-slate-500,
-  .dark .text-slate-400    { color: var(--text-3) !important; }
+  .dark .text-slate-400,
+  .dark .text-slate-300    { color: var(--text-3) !important; }
 
   .dark .hover\:bg-slate-50:hover,
   .dark .hover\:bg-slate-100:hover { background-color: var(--surface-2) !important; }

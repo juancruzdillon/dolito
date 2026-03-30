@@ -18,8 +18,10 @@ import { useBrokersStore } from './stores/brokers.js'
 const store   = useDolarStore()
 const brokers = useBrokersStore()
 
-// ── Dark mode (Carga manual o guardada) ───────────────────────────────────
-const isDark = ref(localStorage.getItem('dolito-theme') === 'dark')
+// ── Dark mode ─────────────────────────────────────────────────────────────
+const stored = localStorage.getItem('dolito-theme')
+const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+const isDark = ref(stored === 'dark' || (!stored && sysDark))
 
 function toggleDark() {
   isDark.value = !isDark.value

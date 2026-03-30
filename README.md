@@ -247,8 +247,5 @@ Si las comisiones de un broker cambiaron y el scraper no las detectó, el lugar 
 ---
 
 <div align="center">
-  <br />
-  Hecho con ♥ para el argentino de a pie
-  <br /><br />
   <sub>Los datos son referenciales. No constituyen asesoramiento financiero. Verificá siempre con tu broker antes de operar.</sub>
 </div>

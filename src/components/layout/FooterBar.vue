@@ -34,7 +34,7 @@
       </div>
 
       <div class="border-t mt-6 pt-4 text-xs text-center" :style="{ borderColor: 'var(--border)', color: 'var(--text-3)' }">
-        © {{ year }} Dolito · Hecho con ♥ para el argentino de a pie
+        © {{ year }} Dolito
       </div>
     </div>
   </footer>

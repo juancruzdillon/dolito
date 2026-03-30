@@ -98,25 +98,41 @@ export const useGlobalStore = defineStore('global', () => {
 
     try {
       const symbolsParam = encodeURIComponent(ALL_SYMBOLS.join(','))
-      const [quotesRes, hotRes] = await Promise.allSettled([
-        fetch(`/api/market?symbols=${symbolsParam}`),
-        fetch('/api/market?hot=1')
-      ])
 
-      if (quotesRes.status === 'fulfilled' && quotesRes.value.ok) {
-        const data = await quotesRes.value.json()
-        const results = data.quoteResponse?.result || []
-        if (results.length === 0) throw new Error('Yahoo Finance no devolvió datos')
-        quotes.value = Object.fromEntries(results.map(q => [q.symbol, q]))
-      } else {
-        const status = quotesRes.value?.status ?? 'red'
-        throw new Error(`Error al obtener datos del mercado (${status})`)
+      // Fetch quotes with retry
+      let quotesData = null
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const r = await fetch(`/api/market?symbols=${symbolsParam}`)
+          if (!r.ok) throw new Error(`HTTP ${r.status}`)
+          const json = await r.json()
+          const results = json.quoteResponse?.result || []
+          if (results.length > 0) {
+            quotesData = results
+            break
+          }
+          // Empty result — wait and retry
+          if (attempt === 0) await new Promise(r => setTimeout(r, 1500))
+        } catch (e) {
+          if (attempt === 1) throw e
+          await new Promise(r => setTimeout(r, 1500))
+        }
       }
 
-      if (hotRes.status === 'fulfilled' && hotRes.value.ok) {
-        const data = await hotRes.value.json()
-        hotStocks.value = (data.finance?.result?.[0]?.quotes || []).slice(0, 6)
+      if (!quotesData || quotesData.length === 0) {
+        throw new Error('Yahoo Finance no devolvió datos después de reintentar')
       }
+
+      quotes.value = Object.fromEntries(quotesData.map(q => [q.symbol, q]))
+
+      // Hot stocks (best effort, don't fail if this breaks)
+      try {
+        const hotRes = await fetch('/api/market?hot=1')
+        if (hotRes.ok) {
+          const data = await hotRes.json()
+          hotStocks.value = (data.finance?.result?.[0]?.quotes || []).slice(0, 6)
+        }
+      } catch {}
 
       lastUpdated.value = new Date()
       if (Object.keys(quotes.value).length > 0) {
@@ -126,7 +142,10 @@ export const useGlobalStore = defineStore('global', () => {
         }))
       }
     } catch (e) {
+      console.warn('[global] fetchData failed:', e.message)
       error.value = e.message
+      // Clear stale cache so next load retries
+      localStorage.removeItem(CACHE_KEY)
     } finally {
       loading.value = false
     }

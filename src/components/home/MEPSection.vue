@@ -5,7 +5,7 @@
       <div>
         <h2 class="text-lg sm:text-xl font-bold" :style="{ color: 'var(--text)' }">MEP real por broker</h2>
         <p class="text-xs mt-0.5" :style="{ color: 'var(--text-3)' }">
-          Precio efectivo después de comisiones (incluye IVA 21%)
+          Precio final con impuestos y comisiones (la que te llega a tu banco)
         </p>
       </div>
       <div
@@ -95,7 +95,11 @@
           </div>
           <div class="pt-2.5 border-t" :style="{ borderColor: 'var(--border)' }">
             <div class="flex justify-between text-xs mb-1">
-              <span :style="{ color: 'var(--text-3)' }">Comisión (ARS)</span>
+              <span :style="{ color: 'var(--text-3)' }">Tarifa broker</span>
+              <span class="font-medium" :style="{ color: 'var(--text-2)' }">{{ (r.broker.commissionBuy * 100).toFixed(2) }}%</span>
+            </div>
+            <div class="flex justify-between text-xs mb-1">
+              <span :style="{ color: 'var(--text-3)' }">Comisión total (ARS)</span>
               <span class="font-semibold" style="color: var(--red);">−{{ fmt(r.commissionImpact) }}</span>
             </div>
             <div class="flex justify-between text-xs">

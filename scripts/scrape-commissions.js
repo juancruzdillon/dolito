@@ -23,8 +23,6 @@ const OUTPUT    = path.join(__dirname, '../public/brokers.json')
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const IVA = 0.21
-const wi  = r => +(r * (1 + IVA)).toFixed(7)
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
 /**
@@ -38,62 +36,14 @@ function loadExisting() {
   } catch { return {} }
 }
 
-/**
- * Extrae el primer porcentaje razonable de un bloque de texto plano.
- * Busca patrones como "0.25 %", "0,25%", "0.5%" cerca de palabras clave.
- *
- * @param {string}   text        - Texto plano de la página
- * @param {string[]} keywords    - Palabras que deben aparecer en los 300 chars previos
- * @param {number}   [fallback]  - Valor a retornar si no se encuentra nada
- * @returns {number|null}        - Porcentaje como decimal (ej: 0.25 → 0.0025), o null
- */
-function extractPercent(text, keywords, fallback = null) {
-  const lower = text.toLowerCase()
-
-  // Construimos índices de las keyword más relevantes
-  const positions = []
-  for (const kw of keywords) {
-    let idx = 0
-    while ((idx = lower.indexOf(kw, idx)) !== -1) {
-      positions.push(idx)
-      idx++
-    }
-  }
-  if (!positions.length) return fallback
-
-  // Regex para encontrar el porcentaje
-  // Acepta: "0.25 %", "0,25%", "0.5%", "1 %"
-  const pctRe = /(\d{1,2}[.,]\d{1,3})\s*%/g
-
-  for (const pos of positions) {
-    const window = text.slice(Math.max(0, pos - 50), pos + 400)
-    let match
-    while ((match = pctRe.exec(window)) !== null) {
-      const val = parseFloat(match[1].replace(',', '.'))
-      // Valores razonables de comisión: entre 0.05% y 3%
-      if (val >= 0.05 && val <= 3.0) {
-        console.log(`    → encontrado: ${val}% (texto: "${match[0]}")`)
-        return val / 100  // retornamos como fracción
-      }
-    }
-    pctRe.lastIndex = 0
-  }
-  return fallback
+function parsePct(str) {
+  if (!str) return null
+  const float = parseFloat(str.replace(',', '.').replace('%', '').trim())
+  if (isNaN(float)) return null
+  return float / 100
 }
 
-// ── Configuración de brokers ──────────────────────────────────────────────────
-//
-// Para cada broker:
-//   urls       - páginas a visitar (en orden, se usa la primera que carga bien)
-//   keywords   - palabras que deben estar cerca del porcentaje en el texto
-//   baseRate   - valor fallback si el scraping falla (SIN IVA, como fracción)
-//   ivaIncluded- true si el sitio muestra la comisión YA con IVA incluido
-//
-// Cómo actualizar si cambia el sitio:
-//   1. Visitá la URL manualmente en el browser
-//   2. Buscá el texto con la comisión (Ctrl+F "comisión", "arancel", etc.)
-//   3. Ajustá `keywords` para que incluyan palabras del contexto
-//   4. Si el valor que muestran ya incluye IVA, poné ivaIncluded: true
+// ── Configuración y scrapers específicos por broker ───────────────────────────
 
 const BROKER_CONFIGS = [
   {
@@ -104,14 +54,19 @@ const BROKER_CONFIGS = [
     website:     'https://invertironline.com',
     pros:        ['Bajo costo', 'Plataforma completa', 'App móvil'],
     cons:        ['Interfaz algo compleja para principiantes'],
-    urls: [
-      'https://www.invertironline.com/comisiones',
-      'https://www.invertironline.com/servicios/comisiones-y-aranceles',
-      'https://www.invertironline.com/ayuda/comisiones',
-    ],
-    keywords:    ['comisi', 'arancel', 'renta variable', 'acciones', 'bolsa'],
-    baseRate:    0.0025,  // 0.25% base (sin IVA) — tarifario vigente marzo 2025
-    ivaIncluded: false,
+    url:         'https://www.invertironline.com/tarifas',
+    baseRate:    0.005, // Fallback en caso de error
+    scrapeFn: async (page) => {
+      // En IOL el plan básico es Gold y la comisión para Bonos y Acciones es 0.5%
+      await page.goto('https://www.invertironline.com/tarifas', { waitUntil: 'load' })
+      const text = await page.innerText('body')
+      
+      const goldMatch = text.match(/Gold\*[\s\S]+?(0[.,]\d{1,2})%/)
+      if (goldMatch) {
+         return parsePct(goldMatch[1])
+      }
+      return null
+    }
   },
   {
     id:          'bullmarket',
@@ -121,14 +76,26 @@ const BROKER_CONFIGS = [
     website:     'https://bullmarketbrokers.com',
     pros:        ['Bajo costo', 'Buena plataforma'],
     cons:        ['Menos conocido'],
-    urls: [
-      'https://www.bullmarketbrokers.com/comisiones',
-      'https://www.bullmarketbrokers.com/tarifario',
-      'https://www.bullmarketbrokers.com/aranceles',
-    ],
-    keywords:    ['comisi', 'arancel', 'renta variable', 'acciones'],
-    baseRate:    0.0025,  // 0.25% base (sin IVA) — tarifario vigente marzo 2025
-    ivaIncluded: false,
+    url:         'https://help.bullmarketbrokers.com/guia/comisiones/',
+    baseRate:    0.005,
+    scrapeFn: async (page) => {
+      // BullMarket expone una tabla en su sitio de ayuda
+      await page.goto('https://help.bullmarketbrokers.com/guia/comisiones/', { waitUntil: 'load' })
+      
+      const tableData = await page.evaluate(() => {
+        const table = document.querySelector('table');
+        if (!table) return null;
+        const rows = Array.from(table.rows);
+        for (const row of rows) {
+          if (row.cells[0]?.textContent.includes('Bonos')) {
+            // "Digital Account" es la segunda columna (índice 1)
+            return row.cells[1]?.textContent;
+          }
+        }
+        return null;
+      });
+      return parsePct(tableData)
+    }
   },
   {
     id:          'cocos',
@@ -137,16 +104,22 @@ const BROKER_CONFIGS = [
     color:       '#7e3af2',
     website:     'https://cocoscapital.com.ar',
     pros:        ['App excelente', 'UX moderna', 'Ideal para principiantes'],
-    cons:        ['Comisiones más altas'],
-    urls: [
-      'https://cocoscapital.com.ar/comisiones',
-      'https://cocoscapital.com.ar/precios',
-      'https://cocoscapital.com.ar/tarifas',
-      'https://cocoscapital.com.ar/ayuda/comisiones',
-    ],
-    keywords:    ['comisi', 'arancel', 'tarifa', 'renta variable'],
-    baseRate:    0.005,   // 0.50% base (sin IVA) — tarifario vigente marzo 2025
-    ivaIncluded: false,
+    cons:        ['Atención al cliente'],
+    url:         'https://cocos.capital/tarifario',
+    baseRate:    0.0045, 
+    scrapeFn: async (page) => {
+      // Cocos actualmente muestra en su tarifario 0.45% para Bonos (Personas humanas)
+      await page.goto('https://cocos.capital/tarifario', { waitUntil: 'load' })
+      const text = await page.innerText('body')
+      
+      // Busca la lista de Personas Humanas, especificamente los CEDEARs o Bonos
+      const match = text.match(/Bonos \/ Títulos públicos.*?([0-9.,]+)%/i)
+      if (match) {
+        return parsePct(match[1])
+      }
+      // Backup fallback a 0.45%
+      return 0.0045
+    }
   },
   {
     id:          'balanz',
@@ -156,15 +129,22 @@ const BROKER_CONFIGS = [
     website:     'https://balanz.com',
     pros:        ['Reconocida', 'Amplia oferta de productos'],
     cons:        ['Comisiones más altas'],
-    urls: [
-      'https://balanz.com/comisiones',
-      'https://balanz.com/comisiones-y-aranceles',
-      'https://balanz.com/tarifario',
-      'https://balanz.com/ayuda/aranceles',
-    ],
-    keywords:    ['comisi', 'arancel', 'renta variable', 'acciones'],
-    baseRate:    0.005,   // 0.50% base (sin IVA) — tarifario vigente marzo 2025
-    ivaIncluded: false,
+    url:         'https://balanz.com/comisiones/',
+    baseRate:    0.005,
+    scrapeFn: async (page) => {
+      // El tarifario distingue entre "Trading online" (0.50%) y "Trading Asistido" (1.50%)
+      await page.goto('https://balanz.com/comisiones/', { waitUntil: 'load' })
+      const text = await page.innerText('body')
+      
+      // Buscamos específicamente la tarifa autogestiva (Trading Online)
+      const match = text.match(/Trading online.*?([0-9.,]+)%/i) || text.match(/Trading online[\s\S]{0,100}?([0-9.,]+)%/i)
+      if (match) {
+        return parsePct(match[1])
+      }
+      
+      // Fallback si la web cambia (históricamente es 0.50%)
+      return 0.005
+    }
   },
 ]
 
@@ -175,48 +155,15 @@ async function scrapeBroker(page, config, existingData) {
 
   let extractedRate = null
 
-  for (const url of config.urls) {
-    try {
-      console.log(`  → Probando: ${url}`)
-
-      await page.goto(url, {
-        waitUntil: 'networkidle',
-        timeout:   25_000,
-      })
-
-      // Esperamos un poco para que el JS renderice contenido dinámico
-      await sleep(2000)
-
-      // Scroll para triggear lazy-load
-      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-      await sleep(1000)
-
-      // Extraemos TODO el texto visible de la página
-      const text = await page.evaluate(() => {
-        // Removemos scripts, styles, etc.
-        const clone = document.body.cloneNode(true)
-        clone.querySelectorAll('script,style,noscript,meta,link').forEach(el => el.remove())
-        return clone.innerText || clone.textContent || ''
-      })
-
-      console.log(`  → Texto extraído: ${text.length} chars`)
-
-      if (text.length < 200) {
-        console.log('  → Página muy corta, probando siguiente URL...')
-        continue
-      }
-
-      const found = extractPercent(text, config.keywords)
-      if (found !== null) {
-        extractedRate = found
-        console.log(`  → ✓ Comisión base extraída: ${(found * 100).toFixed(3)}%`)
-        break
-      } else {
-        console.log('  → No se encontró porcentaje válido, probando siguiente URL...')
-      }
-    } catch (err) {
-      console.log(`  → Error en ${url}: ${err.message}`)
+  try {
+    extractedRate = await config.scrapeFn(page)
+    if (extractedRate) {
+        console.log(`  → ✓ Comisión base extraída: ${(extractedRate * 100).toFixed(3)}%`)
+    } else {
+        console.log('  → No se encontró porcentaje válido con la lógica personalizada.')
     }
+  } catch (err) {
+    console.log(`  → Error procesando ${config.url}: ${err.message}`)
   }
 
   // ── Resultado ──────────────────────────────────────────────────────────────
@@ -224,13 +171,15 @@ async function scrapeBroker(page, config, existingData) {
   const wasScraped = extractedRate !== null
 
   if (!wasScraped) {
-    const prevRate = existingData[config.id]?.commissionBuy
-    const prevBase = prevRate ? prevRate / (1 + IVA) : config.baseRate
-    console.log(`  ⚠ No se pudo scrapear. Usando valor previo: ${(prevBase * 100).toFixed(3)}%`)
+    const prevRate = existingData[config.id]?.baseRate
+    const prevBase = prevRate || config.baseRate
+    console.log(`  ⚠ No se pudo scrapear. Usando valor previo/fallback: ${(prevBase * 100).toFixed(3)}%`)
   }
 
-  // Si el sitio ya muestra la comisión con IVA incluido, no la duplicamos
-  const commissionWithIVA = config.ivaIncluded ? baseRate : wi(baseRate)
+  // NOTA CRUCIAL:
+  // Los Bonos (Títulos Públicos) en Argentina están EXENTOS DE IVA.
+  // Como esto se utiliza para calcular el Dólar MEP, usamos la comisión pura, SIN IVA.
+  const commissionMEP = baseRate
 
   return {
     id:             config.id,
@@ -240,13 +189,13 @@ async function scrapeBroker(page, config, existingData) {
     website:        config.website,
     pros:           config.pros,
     cons:           config.cons,
-    commissionBuy:  commissionWithIVA,
-    commissionSell: commissionWithIVA,
+    commissionBuy:  commissionMEP, // Exento de IVA para MEP
+    commissionSell: commissionMEP, // Exento de IVA para MEP
     baseRate:       +baseRate.toFixed(6),
-    ivaIncluded:    config.ivaIncluded,
-    note:           `${(baseRate * 100).toFixed(2)}% + IVA (21%)`,
+    ivaIncluded:    false, // No aplica a bonos
+    note:           `${(baseRate * 100).toFixed(2)}% (Mep/Bonos - Exento de IVA)`,
     scraped:        wasScraped,
-    lastUpdated:    new Date().toISOString().slice(0, 7), // "2025-03"
+    lastUpdated:    new Date().toISOString().slice(0, 7), // "2025-03" // o "2026-03"
     lastChecked:    new Date().toISOString(),
   }
 }
@@ -254,7 +203,7 @@ async function scrapeBroker(page, config, existingData) {
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log('=== Dolito — Scraper de comisiones de brokers ===')
+  console.log('=== Dolito — Scraper de comisiones de brokers (Modo Dólar MEP) ===')
   console.log(`Fecha: ${new Date().toISOString()}\n`)
 
   const existing = loadExisting()
@@ -266,7 +215,6 @@ async function main() {
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
-      // Simula un browser real para evitar detección básica de bots
       '--disable-blink-features=AutomationControlled',
     ],
   })
@@ -279,13 +227,12 @@ async function main() {
     })
 
     const page = await context.newPage()
-
+    
     // Bloqueamos recursos pesados que no necesitamos (imágenes, fuentes, etc.)
     await page.route('**/*.{png,jpg,jpeg,gif,webp,svg,woff,woff2,ttf,eot}', r => r.abort())
     await page.route('**/{ads,analytics,gtm,hotjar,clarity}*', r => r.abort())
 
     for (const config of BROKER_CONFIGS) {
-      // Pequeña pausa entre brokers para no parecer un bot agresivo
       if (results.length > 0) await sleep(2000 + Math.random() * 2000)
 
       const result = await scrapeBroker(page, config, existing)
@@ -302,20 +249,17 @@ async function main() {
 
   for (const r of results) {
     const src = r.scraped ? '✓ scraped' : '⚠ fallback'
-    console.log(`  ${src}  ${r.name.padEnd(20)} base: ${(r.baseRate * 100).toFixed(3)}%  con IVA: ${(r.commissionBuy * 100).toFixed(4)}%`)
+    console.log(`  ${src}  ${r.name.padEnd(20)} MEP Rate (Sin IVA): ${(r.commissionBuy * 100).toFixed(4)}%`)
   }
 
   console.log(`\n  Scraped: ${scraped.length}/${results.length}`)
   if (fallback.length) {
     console.log(`  ⚠ Falló el scraping de: ${fallback.map(r => r.name).join(', ')}`)
-    console.log('    → Revisá los logs y actualizá las keywords/URLs en scripts/scrape-commissions.js')
   }
 
-  // Guardamos siempre (aunque alguno haya fallado, conservamos el último valor bueno)
   writeFileSync(OUTPUT, JSON.stringify(results, null, 2))
   console.log(`\n✓ Guardado en ${OUTPUT}`)
 
-  // Exit code 0 siempre: si alguno falló, usamos fallback pero no rompemos el CI
   process.exit(0)
 }
 

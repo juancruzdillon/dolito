@@ -3,52 +3,90 @@
     "id": "iol",
     "name": "Invertir Online",
     "shortName": "IOL",
-    "commissionBuy":  0.0030250,
-    "commissionSell": 0.0030250,
     "color": "#1a56db",
     "website": "https://invertironline.com",
-    "note": "0.25% + IVA (21%)",
-    "pros": ["Bajo costo", "Plataforma completa", "App móvil"],
-    "cons": ["Interfaz algo compleja para principiantes"],
-    "lastUpdated": "2025-03"
+    "pros": [
+      "Bajo costo",
+      "Plataforma completa",
+      "App móvil"
+    ],
+    "cons": [
+      "Interfaz algo compleja para principiantes"
+    ],
+    "commissionBuy": 0.005,
+    "commissionSell": 0.005,
+    "baseRate": 0.005,
+    "ivaIncluded": false,
+    "note": "0.50% (Mep/Bonos - Exento de IVA)",
+    "scraped": true,
+    "lastUpdated": "2026-03",
+    "lastChecked": "2026-03-30T00:26:21.109Z"
   },
   {
     "id": "bullmarket",
     "name": "Bull Market",
     "shortName": "BMB",
-    "commissionBuy":  0.0030250,
-    "commissionSell": 0.0030250,
     "color": "#057a55",
     "website": "https://bullmarketbrokers.com",
-    "note": "0.25% + IVA (21%)",
-    "pros": ["Bajo costo", "Buena plataforma"],
-    "cons": ["Menos conocido"],
-    "lastUpdated": "2025-03"
+    "pros": [
+      "Bajo costo",
+      "Buena plataforma"
+    ],
+    "cons": [
+      "Menos conocido"
+    ],
+    "commissionBuy": 0.005,
+    "commissionSell": 0.005,
+    "baseRate": 0.005,
+    "ivaIncluded": false,
+    "note": "0.50% (Mep/Bonos - Exento de IVA)",
+    "scraped": true,
+    "lastUpdated": "2026-03",
+    "lastChecked": "2026-03-30T00:26:25.801Z"
   },
   {
     "id": "cocos",
     "name": "Cocos Capital",
     "shortName": "Cocos",
-    "commissionBuy":  0.0060500,
-    "commissionSell": 0.0060500,
     "color": "#7e3af2",
     "website": "https://cocoscapital.com.ar",
-    "note": "0.50% + IVA (21%)",
-    "pros": ["App excelente", "UX moderna", "Ideal para principiantes"],
-    "cons": ["Comisiones más altas"],
-    "lastUpdated": "2025-03"
+    "pros": [
+      "App excelente",
+      "UX moderna",
+      "Ideal para principiantes"
+    ],
+    "cons": [
+      "Atención al cliente"
+    ],
+    "commissionBuy": 0.0045,
+    "commissionSell": 0.0045,
+    "baseRate": 0.0045,
+    "ivaIncluded": false,
+    "note": "0.45% (Mep/Bonos - Exento de IVA)",
+    "scraped": true,
+    "lastUpdated": "2026-03",
+    "lastChecked": "2026-03-30T00:26:31.242Z"
   },
   {
     "id": "balanz",
     "name": "Balanz",
     "shortName": "Balanz",
-    "commissionBuy":  0.0060500,
-    "commissionSell": 0.0060500,
     "color": "#e3a008",
     "website": "https://balanz.com",
-    "note": "0.50% + IVA (21%)",
-    "pros": ["Reconocida", "Amplia oferta de productos"],
-    "cons": ["Comisiones más altas"],
-    "lastUpdated": "2025-03"
+    "pros": [
+      "Reconocida",
+      "Amplia oferta de productos"
+    ],
+    "cons": [
+      "Comisiones más altas"
+    ],
+    "commissionBuy": 0.005,
+    "commissionSell": 0.005,
+    "baseRate": 0.005,
+    "ivaIncluded": false,
+    "note": "0.50% (Mep/Bonos - Exento de IVA)",
+    "scraped": true,
+    "lastUpdated": "2026-03",
+    "lastChecked": "2026-03-30T00:26:36.733Z"
   }
 ]

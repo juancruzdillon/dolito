@@ -12,7 +12,7 @@ import { ref, computed } from 'vue'
 //
 // Fórmula del tipo de cambio efectivo:
 //   efectivo = cotización_mercado × (1 + commissionBuy) / (1 - commissionSell)
-//   Todas las comisiones ya incluyen IVA (21%).
+//   NOTA: Los bonos/títulos públicos utilizados para MEP están EXENTOS DE IVA en Arg.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // El JSON lo genera el scraper diario (GitHub Action) y queda en public/brokers.json.
@@ -24,61 +24,59 @@ const CACHE_KEY = 'dolito_brokers_cache'
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000 // 6 horas
 
 // ── Valores de fallback (usados si el remoto no está disponible) ──────────────
-const IVA = 0.21
-const wi = r => +(r * (1 + IVA)).toFixed(6)
 
 export const BROKERS_FALLBACK = [
   {
     id: 'iol',
     name: 'Invertir Online',
     shortName: 'IOL',
-    commissionBuy:  wi(0.0025),   // 0.25% + IVA
-    commissionSell: wi(0.0025),
+    commissionBuy:  0.005,   // 0.50%
+    commissionSell: 0.005,
     color: '#1a56db',
     website: 'https://invertironline.com',
-    note: '0.25% + IVA (21%)',
+    note: '0.50% (Mep/Bonos - Exento de IVA)',
     pros: ['Bajo costo', 'Plataforma completa', 'App móvil'],
     cons: ['Interfaz algo compleja para principiantes'],
-    lastUpdated: '2025-03',
+    lastUpdated: '2026-03',
   },
   {
     id: 'bullmarket',
     name: 'Bull Market',
     shortName: 'BMB',
-    commissionBuy:  wi(0.0025),   // 0.25% + IVA
-    commissionSell: wi(0.0025),
+    commissionBuy:  0.005,   // 0.50%
+    commissionSell: 0.005,
     color: '#057a55',
     website: 'https://bullmarketbrokers.com',
-    note: '0.25% + IVA (21%)',
+    note: '0.50% (Mep/Bonos - Exento de IVA)',
     pros: ['Bajo costo', 'Buena plataforma'],
     cons: ['Menos conocido'],
-    lastUpdated: '2025-03',
+    lastUpdated: '2026-03',
   },
   {
     id: 'cocos',
     name: 'Cocos Capital',
     shortName: 'Cocos',
-    commissionBuy:  wi(0.005),    // 0.50% + IVA
-    commissionSell: wi(0.005),
+    commissionBuy:  0.0045,    // 0.45%
+    commissionSell: 0.0045,
     color: '#7e3af2',
     website: 'https://cocoscapital.com.ar',
-    note: '0.50% + IVA (21%)',
+    note: '0.45% (Mep/Bonos - Exento de IVA)',
     pros: ['App excelente', 'UX moderna', 'Ideal para principiantes'],
     cons: ['Comisiones más altas'],
-    lastUpdated: '2025-03',
+    lastUpdated: '2026-03',
   },
   {
     id: 'balanz',
     name: 'Balanz',
     shortName: 'Balanz',
-    commissionBuy:  wi(0.005),    // 0.50% + IVA
-    commissionSell: wi(0.005),
+    commissionBuy:  0.005,    // 0.50%
+    commissionSell: 0.005,
     color: '#e3a008',
     website: 'https://balanz.com',
-    note: '0.50% + IVA (21%)',
+    note: '0.50% (Mep/Bonos - Exento de IVA)',
     pros: ['Reconocida', 'Amplia oferta de productos'],
     cons: ['Comisiones más altas'],
-    lastUpdated: '2025-03',
+    lastUpdated: '2026-03',
   },
 ]
 

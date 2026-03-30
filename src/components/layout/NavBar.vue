@@ -8,13 +8,11 @@
 
         <!-- Logo -->
         <RouterLink to="/" class="flex items-center gap-2.5 flex-shrink-0 group">
-          <div class="relative w-8 h-8">
+          <div class="relative w-8 h-8 transition-transform group-hover:scale-105 duration-300">
             <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
-              <rect width="48" height="48" rx="12" fill="#0EA47A"/>
-              <rect x="13" y="7" width="5" height="34" rx="2.5" fill="white"/>
-              <path d="M18 14 C27 14 33 18.5 33 24 C33 29.5 27 34 18 34" stroke="white" stroke-width="4.5" stroke-linecap="round" fill="none"/>
-              <rect x="9"  y="19.5" width="12" height="2.8" rx="1.4" fill="white"/>
-              <rect x="9"  y="25.5" width="12" height="2.8" rx="1.4" fill="white" opacity="0.65"/>
+              <rect width="48" height="48" rx="14" fill="#0EA47A"/>
+              <path d="M24 8 V40" stroke="white" stroke-width="4.5" stroke-linecap="round" />
+              <path d="M31 16 C31 11.5, 17 11.5, 17 19 C17 26.5, 31 24.5, 31 31 C31 38.5, 17 38.5, 17 34" stroke="white" stroke-width="4.5" stroke-linecap="round" fill="none" />
             </svg>
           </div>
           <div class="flex items-baseline gap-0.5">

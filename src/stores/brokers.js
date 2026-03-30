@@ -184,9 +184,9 @@ export const useBrokersStore = defineStore('brokers', () => {
   }
 
   const sourceLabel = computed(() => ({
-    remote: '✓ Comisiones actualizadas',
-    cache: '✓ Comisiones en caché local',
-    fallback: '⚠ Comisiones por defecto — verificar manualmente',
+    remote: 'Comisiones actualizadas',
+    cache: 'Comisiones en caché local',
+    fallback: 'Comisiones por defecto — verificar manualmente',
   }[configSource.value]))
 
   return {

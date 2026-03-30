@@ -73,10 +73,11 @@
         <!-- Nombre broker -->
         <div class="flex items-center gap-2 mb-3 mt-1">
           <div
-            class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-black flex-shrink-0"
-            :style="{ backgroundColor: r.broker.color }"
+            class="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0 border"
+            :style="{ backgroundColor: r.broker.logo ? '#fff' : r.broker.color, borderColor: 'var(--border)' }"
           >
-            {{ r.broker.shortName.charAt(0) }}
+            <img v-if="r.broker.logo" :src="getBrokerLogo(r.broker.logo)" class="w-full h-full object-contain p-1" />
+            <span v-else class="text-white text-xs font-black">{{ r.broker.shortName.charAt(0) }}</span>
           </div>
           <span class="font-semibold text-sm" :style="{ color: 'var(--text)' }">{{ r.broker.shortName }}</span>
         </div>
@@ -145,4 +146,8 @@ const results    = computed(() => {
 
 const fmt    = n => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 }).format(n)
 const fmtUSD = n => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
+
+const getBrokerLogo = (name) => {
+  return new URL(`../../assets/images/brokers/${name}`, import.meta.url).href
+}
 </script>

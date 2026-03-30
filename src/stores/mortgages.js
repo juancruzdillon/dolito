@@ -72,11 +72,18 @@ export const useMortgageStore = defineStore('mortgage', () => {
   const loading = ref(false)
   const lastUpdated = ref(null)
   const rates = ref([])
-  const showSalaryRates = ref(true) // Default to "Con Sueldo" as it's often more convenient
+  const showSalaryRates = ref(false) // Default to "Con Sueldo" as it's often more convenient
   const itemsPerPage = ref(6)
   const visibleItemsCount = ref(6)
 
-  // Deduplicate and filter by "Con Sueldo" toggle
+  // Filtering & Sorting State
+  const sortBy = ref('tna') // 'tna' | 'financing' | 'term'
+  const filters = ref({
+    maxTna: null,
+    minFinancing: null
+  })
+
+  // Deduplicate, filter and sort
   const filteredRates = computed(() => {
     if (!rates.value.length) return []
 
@@ -86,7 +93,7 @@ export const useMortgageStore = defineStore('mortgage', () => {
       const bankKey = item.bankName.toUpperCase()
       const isSalary = item.isSalaryAccount
 
-      // Filter by salary toggle
+      // 1. Filter by salary toggle (Basic BCRA selection)
       if (isSalary !== showSalaryRates.value) return
 
       const existing = bestByBank.get(bankKey)
@@ -95,7 +102,30 @@ export const useMortgageStore = defineStore('mortgage', () => {
       }
     })
 
-    return Array.from(bestByBank.values()).sort((a, b) => a.tna - b.tna)
+    let results = Array.from(bestByBank.values())
+
+    // 2. Apply Custom Filters
+    if (filters.value.maxTna !== null) {
+      results = results.filter(r => r.tna <= filters.value.maxTna)
+    }
+    if (filters.value.minFinancing !== null) {
+      results = results.filter(r => {
+        const val = parseInt(r.financing)
+        return val >= filters.value.minFinancing
+      })
+    }
+
+    // 3. Apply Sorting
+    return results.sort((a, b) => {
+      if (sortBy.value === 'tna') return a.tna - b.tna
+      if (sortBy.value === 'financing') {
+        return parseInt(b.financing) - parseInt(a.financing)
+      }
+      if (sortBy.value === 'term') {
+        return parseInt(b.term) - parseInt(a.term)
+      }
+      return 0
+    })
   })
 
   const paginatedRates = computed(() => {
@@ -143,6 +173,20 @@ export const useMortgageStore = defineStore('mortgage', () => {
           }
         }
 
+        // Financial Sanity Check for Financing %
+        let rawFinancing = item.relacionMontoTasacion;
+        let financingVal;
+
+        if (!rawFinancing || rawFinancing === 0) {
+          financingVal = 75; // Default standard
+        } else if (rawFinancing <= 1) {
+          financingVal = Math.round(rawFinancing * 100); // 0.75 -> 75%
+        } else if (rawFinancing >= 95) {
+          financingVal = 75; // 99.99 or 100 -> often placeholder for "not defined"
+        } else {
+          financingVal = Math.round(rawFinancing);
+        }
+
         return {
           id: `bank-${item.codigoEntidad}-${item.tasaEfectivaAnualMaxima}-${item.beneficiario}`,
           bankName: bankName,
@@ -150,7 +194,7 @@ export const useMortgageStore = defineStore('mortgage', () => {
           logo: matchedLogo,
           tna: item.tasaEfectivaAnualMaxima,
           term: `${item.plazoMaximoOtorgable / 12} años`,
-          financing: `${item.relacionMontoTasacion || 75}%`,
+          financing: `${financingVal}%`,
           affectation: `${item.relacionCuotaIngreso || 25}%`,
           isSalaryAccount: item.beneficiario?.toLowerCase().includes('sueldo') || false,
           updatedAt: item.fechaInformacion || new Date().toISOString().split('T')[0]
@@ -158,9 +202,27 @@ export const useMortgageStore = defineStore('mortgage', () => {
       })
   }
 
+  const uvaValue = ref(1120) // Default fallback
+
+  async function fetchUvaValue() {
+    try {
+      const res = await fetch('https://api.argentinadatos.com/v1/finanzas/indices/uva')
+      const data = await res.json()
+      // Expecting an array sorted by date, get the last one
+      if (Array.isArray(data) && data.length > 0) {
+        uvaValue.value = data[data.length - 1].valor
+      }
+    } catch (err) {
+      console.error('Error fetching UVA value:', err)
+    }
+  }
+
   async function fetchMortgageRates(force = false) {
     if (loading.value && !force) return
     loading.value = true
+
+    // Fetch UVA concurrently
+    fetchUvaValue()
 
     try {
       const response = await fetch('https://api.bcra.gob.ar/transparencia/v1.0/Prestamos/Hipotecarios')
@@ -187,6 +249,9 @@ export const useMortgageStore = defineStore('mortgage', () => {
     lastUpdated,
     showSalaryRates,
     fetchMortgageRates,
-    loadMore
+    loadMore,
+    sortBy,
+    filters,
+    uvaValue
   }
 })

@@ -30,7 +30,8 @@ export const BROKERS_FALLBACK = [
     id: 'iol',
     name: 'Invertir Online',
     shortName: 'IOL',
-    commissionBuy:  0.005,   // 0.50%
+    logo: 'iol.jpg',
+    commissionBuy: 0.005,   // 0.50%
     commissionSell: 0.005,
     color: '#1a56db',
     website: 'https://invertironline.com',
@@ -43,7 +44,8 @@ export const BROKERS_FALLBACK = [
     id: 'bullmarket',
     name: 'Bull Market',
     shortName: 'BMB',
-    commissionBuy:  0.005,   // 0.50%
+    logo: 'bullmarket.jpg',
+    commissionBuy: 0.005,   // 0.50%
     commissionSell: 0.005,
     color: '#057a55',
     website: 'https://bullmarketbrokers.com',
@@ -56,7 +58,8 @@ export const BROKERS_FALLBACK = [
     id: 'cocos',
     name: 'Cocos Capital',
     shortName: 'Cocos',
-    commissionBuy:  0.0045,    // 0.45%
+    logo: 'cocos.png',
+    commissionBuy: 0.0045,    // 0.45%
     commissionSell: 0.0045,
     color: '#7e3af2',
     website: 'https://cocoscapital.com.ar',
@@ -69,7 +72,8 @@ export const BROKERS_FALLBACK = [
     id: 'balanz',
     name: 'Balanz',
     shortName: 'Balanz',
-    commissionBuy:  0.005,    // 0.50%
+    logo: 'balanz.png',
+    commissionBuy: 0.005,    // 0.50%
     commissionSell: 0.005,
     color: '#e3a008',
     website: 'https://balanz.com',
@@ -83,8 +87,8 @@ export const BROKERS_FALLBACK = [
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const useBrokersStore = defineStore('brokers', () => {
-  const brokers        = ref([...BROKERS_FALLBACK])
-  const configSource   = ref('fallback') // 'remote' | 'cache' | 'fallback'
+  const brokers = ref([...BROKERS_FALLBACK])
+  const configSource = ref('fallback') // 'remote' | 'cache' | 'fallback'
   const configLoadedAt = ref(null)
 
   // ── Caché local ──────────────────────────────────────────────────────────
@@ -94,8 +98,8 @@ export const useBrokersStore = defineStore('brokers', () => {
       if (!raw) return false
       const { data, timestamp } = JSON.parse(raw)
       if (Date.now() - timestamp > CACHE_TTL_MS) return false
-      brokers.value   = data
-      configSource.value   = 'cache'
+      brokers.value = data
+      configSource.value = 'cache'
       configLoadedAt.value = new Date(timestamp).toLocaleDateString('es-AR')
       return true
     } catch { return false }
@@ -104,7 +108,7 @@ export const useBrokersStore = defineStore('brokers', () => {
   function saveToCache(data) {
     try {
       localStorage.setItem(CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }))
-    } catch {}
+    } catch { }
   }
 
   // ── Fetch remoto ─────────────────────────────────────────────────────────
@@ -113,7 +117,7 @@ export const useBrokersStore = defineStore('brokers', () => {
     try {
       // Cache-bust con timestamp truncado a horas (no recarga cada request)
       const bust = Math.floor(Date.now() / CACHE_TTL_MS)
-      const res  = await fetch(`${REMOTE_CONFIG_URL}?t=${bust}`)
+      const res = await fetch(`${REMOTE_CONFIG_URL}?t=${bust}`)
       if (!res.ok) return false
       const data = await res.json()
       if (!Array.isArray(data) || !data.length) return false
@@ -123,10 +127,19 @@ export const useBrokersStore = defineStore('brokers', () => {
         if (!b.id || b.commissionBuy == null || b.commissionSell == null) return false
       }
 
-      brokers.value        = data
-      configSource.value   = 'remote'
+      // Propagamos propiedades visuales (logo, color) de BROKERS_FALLBACK a la data remota
+      const enrichedData = data.map(remoteBroker => {
+        const fallback = BROKERS_FALLBACK.find(f => f.id === remoteBroker.id)
+        return {
+          ...fallback, // Primero el fallback (tiene logo, color, name largo)
+          ...remoteBroker // Pisamos con lo remoto (datos financieros frescos)
+        }
+      })
+
+      brokers.value = enrichedData
+      configSource.value = 'remote'
       configLoadedAt.value = new Date().toLocaleDateString('es-AR')
-      saveToCache(data)
+      saveToCache(enrichedData)
       return true
     } catch {
       return false
@@ -148,18 +161,18 @@ export const useBrokersStore = defineStore('brokers', () => {
     const broker = brokers.value.find(b => b.id === brokerId)
     if (!broker || !marketRate) return null
 
-    const effectiveRate    = marketRate * (1 + broker.commissionBuy) / (1 - broker.commissionSell)
-    const receivedUSD      = amountARS / effectiveRate
+    const effectiveRate = marketRate * (1 + broker.commissionBuy) / (1 - broker.commissionSell)
+    const receivedUSD = amountARS / effectiveRate
     const commissionImpact = amountARS - (receivedUSD * marketRate)
-    const spreadPct        = ((effectiveRate - marketRate) / marketRate) * 100
+    const spreadPct = ((effectiveRate - marketRate) / marketRate) * 100
 
     return {
       broker,
       marketRate,
-      effectiveRate:    +effectiveRate.toFixed(2),
-      receivedUSD:      +receivedUSD.toFixed(2),
+      effectiveRate: +effectiveRate.toFixed(2),
+      receivedUSD: +receivedUSD.toFixed(2),
       commissionImpact: +commissionImpact.toFixed(2),
-      spreadPct:        +spreadPct.toFixed(3),
+      spreadPct: +spreadPct.toFixed(3),
     }
   }
 
@@ -171,8 +184,8 @@ export const useBrokersStore = defineStore('brokers', () => {
   }
 
   const sourceLabel = computed(() => ({
-    remote:   '✓ Comisiones actualizadas (remoto)',
-    cache:    '✓ Comisiones en caché local',
+    remote: '✓ Comisiones actualizadas',
+    cache: '✓ Comisiones en caché local',
     fallback: '⚠ Comisiones por defecto — verificar manualmente',
   }[configSource.value]))
 

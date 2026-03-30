@@ -7,8 +7,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['Outfit', 'system-ui', 'sans-serif'],
+        mono: ['Geist Mono', 'monospace'],
       },
       colors: {
         // Dolito teal — el color distintivo de la marca

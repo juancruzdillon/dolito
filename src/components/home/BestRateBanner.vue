@@ -22,14 +22,18 @@
       </div>
 
       <!-- Derecha: precios -->
-      <div class="flex items-center gap-5 pl-[52px] sm:pl-0 flex-shrink-0">
-        <div>
-          <p class="text-[10px] uppercase tracking-wide mb-0.5" style="color: rgba(255,255,255,.55);">Venta</p>
-          <p class="price-value text-2xl sm:text-3xl font-black text-white">{{ fmt(best.venta) }}</p>
+      <div class="flex items-center gap-4 sm:gap-8 flex-wrap sm:flex-nowrap">
+        <div class="min-w-fit">
+          <p class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.15em] mb-1 text-white/60">Venta</p>
+          <p class="price-value text-3xl sm:text-4xl font-black text-white leading-none tracking-tighter">
+            {{ fmt(best.venta) }}
+          </p>
         </div>
-        <div v-if="best.compra" class="pl-5 sm:pl-6 border-l" style="border-color: rgba(255,255,255,.2);">
-          <p class="text-[10px] uppercase tracking-wide mb-0.5" style="color: rgba(255,255,255,.55);">Compra</p>
-          <p class="price-value text-lg sm:text-xl font-bold" style="color: rgba(255,255,255,.85);">{{ fmt(best.compra) }}</p>
+        <div v-if="best.compra" class="pl-4 sm:pl-8 border-l border-white/20 min-w-fit">
+          <p class="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.15em] mb-1 text-white/60">Compra</p>
+          <p class="price-value text-xl sm:text-2xl font-black text-white/90 leading-none tracking-tighter">
+            {{ fmt(best.compra) }}
+          </p>
         </div>
       </div>
     </div>

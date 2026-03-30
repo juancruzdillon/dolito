@@ -36,32 +36,32 @@
     --shadow-hover: 0 4px 16px rgba(0,0,0,.10);
   }
 
-  /* ── Modo oscuro — paleta propia, sin invertir el claro ─────────────────── */
+  /* ── Modo oscuro — refinado, mate y más claro ──────────────────────────── */
   .dark {
-    --bg:        #111318;
-    --surface:   #1C1F26;
-    --surface-2: #252830;
-    --border:    #2E3038;
-    --border-2:  #3A3D48;
+    --bg:        #1E2128;
+    --surface:   #282C34;
+    --surface-2: #323842;
+    --border:    #3D434F;
+    --border-2:  #4E5463;
 
-    --text:      #EAEAEA;
-    --text-2:    #A0A6B4;
-    --text-3:    #5C6172;
+    --text:      #D1D5DB;
+    --text-2:    #9CA3AF;
+    --text-3:    #6B7280;
 
-    --brand:     #10C990;
-    --brand-hi:  #13E09F;
-    --brand-bg:  #0D2B22;
-    --brand-text:#10C990;
+    --brand:     #34B48F;
+    --brand-hi:  #40C8A0;
+    --brand-bg:  #1A2E28;
+    --brand-text:#34B48F;
 
-    --green:     #34D472;
-    --green-bg:  #0B2018;
-    --red:       #F26868;
-    --red-bg:    #240E0E;
-    --amber:     #F0B429;
-    --amber-bg:  #221A07;
+    --green:     #47B578;
+    --green-bg:  #142F22;
+    --red:       #E06C75;
+    --red-bg:    #2C1A1C;
+    --amber:     #D19A66;
+    --amber-bg:  #2C251B;
 
-    --shadow-card:  0 1px 3px rgba(0,0,0,.35);
-    --shadow-hover: 0 6px 20px rgba(0,0,0,.45);
+    --shadow-card:  0 1px 3px rgba(0,0,0,.25);
+    --shadow-hover: 0 6px 15px rgba(0,0,0,.35);
   }
 
   /* ── Reset / base ────────────────────────────────────────────────────────── */
@@ -73,6 +73,12 @@
     color: var(--text);
     @apply font-sans;
     transition: background-color 0.2s, color 0.2s;
+  }
+
+  .price-value {
+    @apply font-mono;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
   }
 
   /* ── Overrides de Tailwind en dark ─────────────────────────────────────── */

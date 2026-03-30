@@ -33,11 +33,19 @@
       <!-- Filters -->
       <div v-if="!store.loading && store.rates.length > 0" class="card mb-4 p-4">
         <div class="flex flex-wrap items-end gap-3">
-          <div class="flex-1 min-w-[160px]">
+          <!-- Buscador -->
+          <div class="flex-1 min-w-[180px]">
+            <label class="text-[11px] font-semibold uppercase tracking-wide block mb-1.5" style="color: var(--text-3);">Buscar banco</label>
+            <div class="relative">
+              <Search :size="13" class="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style="color: var(--text-3);" />
+              <input v-model="bankSearch" type="text" placeholder="Nombre del banco..." class="input-field py-2 text-sm pl-8" />
+            </div>
+          </div>
+          <div class="flex-1 min-w-[140px]">
             <label class="text-[11px] font-semibold uppercase tracking-wide block mb-1.5" style="color: var(--text-3);">Ordenar por</label>
             <div class="flex rounded-lg overflow-hidden border" style="border-color: var(--border);">
               <button
-                v-for="opt in [{id:'tna', label:'Tasa'}, {id:'financing', label:'Financia'}, {id:'term', label:'Plazo'}]"
+                v-for="opt in [{id:'tna', label:'Tasa'}, {id:'financing', label:'Fin.'}, {id:'term', label:'Plazo'}]"
                 :key="opt.id"
                 @click="store.sortBy = opt.id"
                 class="flex-1 py-1.5 text-xs font-semibold transition-colors"
@@ -47,15 +55,15 @@
               >{{ opt.label }}</button>
             </div>
           </div>
-          <div class="w-36">
+          <div class="w-32">
             <label class="text-[11px] font-semibold uppercase tracking-wide block mb-1.5" style="color: var(--text-3);">Tasa máx (%)</label>
             <input v-model.number="store.filters.maxTna" type="number" step="0.5" placeholder="Ej: 8" class="input-field py-2 text-sm" />
           </div>
-          <div class="w-36">
+          <div class="w-32">
             <label class="text-[11px] font-semibold uppercase tracking-wide block mb-1.5" style="color: var(--text-3);">Mín financia (%)</label>
             <input v-model.number="store.filters.minFinancing" type="number" placeholder="Ej: 75" class="input-field py-2 text-sm" />
           </div>
-          <button @click="resetFilters" class="btn-ghost py-2" title="Limpiar filtros">
+          <button @click="resetFilters(); bankSearch = ''" class="btn-ghost py-2" title="Limpiar filtros">
             <RefreshCcw :size="14" />
           </button>
         </div>
@@ -77,7 +85,7 @@
       <!-- Bank List -->
       <div v-else class="space-y-2 mb-12">
         <div
-          v-for="bank in store.paginatedRates"
+          v-for="bank in displayedRates"
           :key="bank.id"
           class="card p-4 flex items-center gap-4"
         >
@@ -100,11 +108,11 @@
           <div class="flex-shrink-0 text-right">
             <p class="price-value text-xl font-bold" style="color: var(--brand);">{{ (bank.tna || 0).toFixed(1) }}%</p>
             <p class="text-[10px] font-medium" style="color: var(--text-3);">TNA</p>
-            <p v-if="bank.updatedAt" class="text-[10px] mt-0.5" style="color: var(--text-3);">Actualizado: {{ bank.updatedAt }}</p>
+            <p v-if="bank.updatedAt" class="text-[10px] mt-0.5" :style="{ color: isStale(bank.updatedAt) ? 'var(--amber)' : 'var(--text-3)' }" :title="isStale(bank.updatedAt) ? 'El banco no actualizó esta tasa en más de 30 días' : ''">{{ bank.updatedAt }}</p>
           </div>
         </div>
 
-        <div v-if="store.hasMore" class="flex justify-center pt-2">
+        <div v-if="store.hasMore && !bankSearch" class="flex justify-center pt-2">
           <button @click="store.loadMore" class="btn-secondary flex items-center gap-2 text-sm">
             Ver más <ChevronDown :size="14" />
           </button>
@@ -236,15 +244,21 @@
 
           <!-- Years -->
           <div>
-            <div class="flex justify-between items-center mb-1.5">
+            <div class="flex justify-between items-center mb-3">
               <label class="text-[11px] font-semibold uppercase tracking-wide" style="color: var(--text-3);">Plazo</label>
               <span class="text-sm font-semibold">{{ calc.years }} años</span>
             </div>
-            <input v-model.number="calc.years" type="range" min="5" max="30" step="1" class="w-full cursor-pointer" style="accent-color: var(--brand);" />
-            <div class="flex justify-between text-[10px] mt-1" style="color: var(--text-3);">
-              <span>5 años</span>
-              <span>20 años</span>
-              <span>30 años</span>
+            <!-- Track visual separado del input para evitar desfase por padding interno del browser -->
+            <div class="relative h-4 flex items-center">
+              <div class="absolute inset-x-0 h-1 rounded-full pointer-events-none" style="background: var(--surface-2);">
+                <div class="h-full rounded-full" style="background: var(--brand);" :style="{ width: sliderPct + '%' }"></div>
+              </div>
+              <input v-model.number="calc.years" type="range" min="5" max="30" step="1" class="range-slider w-full relative z-10" />
+            </div>
+            <div class="relative text-[10px] mt-1.5 h-4" style="color: var(--text-3);">
+              <span class="absolute left-0">5 años</span>
+              <span class="absolute -translate-x-1/2" style="left: 60%">20 años</span>
+              <span class="absolute right-0">30 años</span>
             </div>
           </div>
 
@@ -289,15 +303,45 @@
         </div>
       </section>
 
+      <!-- Histórico UVA -->
+      <section class="mb-12">
+        <div class="flex items-baseline justify-between mb-3">
+          <h2 class="text-base font-semibold">Evolución del valor UVA</h2>
+          <div class="flex gap-2">
+            <button
+              v-for="r in [{label:'1A', months:12},{label:'2A', months:24},{label:'5A', months:60},{label:'Todo', months:0}]"
+              :key="r.label"
+              @click="uvaRange = r.months"
+              class="text-[11px] font-semibold px-2.5 py-1 rounded-md transition-colors"
+              :style="uvaRange === r.months ? 'background: var(--brand); color: #fff;' : 'background: var(--surface-2); color: var(--text-2);'"
+            >{{ r.label }}</button>
+          </div>
+        </div>
+        <div class="card p-4">
+          <div v-if="uvaHistory.length === 0" class="flex items-center justify-center h-40 gap-2" style="color: var(--text-3);">
+            <div class="w-4 h-4 border-2 rounded-full animate-spin" style="border-color: var(--border-2); border-top-color: var(--brand);"></div>
+            <span class="text-sm">Cargando...</span>
+          </div>
+          <Line v-else :data="uvaChartData" :options="uvaChartOptions" style="height: 220px;" />
+        </div>
+      </section>
+
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, computed, reactive, watch } from 'vue'
+import { onMounted, computed, reactive, ref, watch } from 'vue'
 import { useMortgageStore } from '@/stores/mortgages.js'
 import { Building, ChevronDown, Coins, RefreshCcw, Search } from 'lucide-vue-next'
 import { useDolarStore } from '@/stores/dolar.js'
+import { Line } from 'vue-chartjs'
+import {
+  Chart as ChartJS, CategoryScale, LinearScale, PointElement,
+  LineElement, Tooltip, Filler
+} from 'chart.js'
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler)
 
 const store = useMortgageStore()
 const dolarStore = useDolarStore()
@@ -312,10 +356,65 @@ const calc = reactive({
   bankSearchQuery: ''
 })
 
+const bankSearch = ref('')
+const uvaHistory = ref([])
+const uvaRange = ref(24)
+
 const filteredBanks = computed(() => {
   const q = calc.bankSearchQuery.toLowerCase()
   return store.filteredRates.filter(b => b.bankName.toLowerCase().includes(q))
 })
+
+const displayedRates = computed(() => {
+  const q = bankSearch.value.toLowerCase().trim()
+  if (q) return store.filteredRates.filter(b => b.bankName.toLowerCase().includes(q))
+  return store.paginatedRates
+})
+
+const sliderPct = computed(() => ((calc.years - 5) / (30 - 5)) * 100)
+
+const uvaChartData = computed(() => {
+  let data = uvaHistory.value
+  if (uvaRange.value > 0) {
+    const cutoff = new Date()
+    cutoff.setMonth(cutoff.getMonth() - uvaRange.value)
+    data = data.filter(d => new Date(d.fecha) >= cutoff)
+  }
+  // Muestra un punto cada 15 días para no sobrecargar el gráfico
+  const sampled = data.filter((_, i) => i % 15 === 0)
+  return {
+    labels: sampled.map(d => {
+      const [y, m] = d.fecha.split('-')
+      return `${m}/${y.slice(2)}`
+    }),
+    datasets: [{
+      data: sampled.map(d => d.valor),
+      borderColor: 'var(--brand)',
+      backgroundColor: 'rgba(14, 164, 122, 0.08)',
+      fill: true,
+      tension: 0.3,
+      pointRadius: 0,
+      borderWidth: 2
+    }]
+  }
+})
+
+const uvaChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  interaction: { mode: 'index', intersect: false },
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      callbacks: { label: ctx => ` $${ctx.parsed.y.toFixed(2)}` }
+    }
+  },
+  scales: {
+    x: { grid: { display: false }, ticks: { color: 'var(--text-3)', font: { size: 10 }, maxTicksLimit: 8 } },
+    y: { grid: { color: 'var(--border)' }, ticks: { color: 'var(--text-3)', font: { size: 10 }, callback: v => `$${v}` } }
+  },
+  elements: { point: { radius: 0, hoverRadius: 4, hoverBackgroundColor: 'var(--brand)' } }
+}
 
 const selectedBank = computed(() => {
   return store.rates.find(b => b.id === calc.bankId) || store.rates[0]
@@ -371,6 +470,12 @@ function handleImageError(e) {
   e.target.style.display = 'none'
 }
 
+function isStale(dateStr) {
+  if (!dateStr) return false
+  const diff = Date.now() - new Date(dateStr).getTime()
+  return diff > 30 * 24 * 60 * 60 * 1000 // más de 30 días
+}
+
 function applyArsValue(val) {
   calc.amount = Math.round(val)
   calc.showUsdHelper = false
@@ -380,9 +485,19 @@ watch(() => store.filteredRates, (newRates) => {
   if (newRates.length > 0) calc.bankId = newRates[0].id
 }, { immediate: true })
 
+async function fetchUvaHistory() {
+  try {
+    const res = await fetch('https://api.argentinadatos.com/v1/finanzas/indices/uva')
+    uvaHistory.value = await res.json()
+  } catch (e) {
+    console.error('Error fetching UVA history', e)
+  }
+}
+
 onMounted(() => {
   store.fetchMortgageRates()
   dolarStore.fetchRates()
+  fetchUvaHistory()
 })
 </script>
 
@@ -399,18 +514,38 @@ input[type=number]::-webkit-outer-spin-button {
   margin: 0;
 }
 
-input[type=range]::-webkit-slider-thumb {
+.range-slider {
   -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
   height: 16px;
+  outline: none;
+}
+
+/* Track transparente — el fill visual lo maneja el div separado */
+.range-slider::-webkit-slider-runnable-track { background: transparent; height: 16px; }
+.range-slider::-moz-range-track { background: transparent; height: 16px; }
+
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
   width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--brand);
   cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px var(--brand);
+  margin-top: 0;
 }
 
-input[type=range]::-webkit-slider-runnable-track {
-  height: 4px;
-  border-radius: 2px;
-  background: var(--surface-2);
+.range-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--brand);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 0 0 1px var(--brand);
 }
 </style>

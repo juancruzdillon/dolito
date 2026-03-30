@@ -90,12 +90,9 @@ export const useMortgageStore = defineStore('mortgage', () => {
     const bestByBank = new Map()
 
     rates.value.forEach(item => {
+      if (item.isSalaryAccount !== showSalaryRates.value) return
+
       const bankKey = item.bankName.toUpperCase()
-      const isSalary = item.isSalaryAccount
-
-      // 1. Filter by salary toggle (Basic BCRA selection)
-      if (isSalary !== showSalaryRates.value) return
-
       const existing = bestByBank.get(bankKey)
       if (!existing || item.tna < existing.tna) {
         bestByBank.set(bankKey, item)

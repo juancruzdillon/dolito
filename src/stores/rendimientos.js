@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import scrapedData from '../data/rendimientos-live.json'
 
 const localLogo = (file) => new URL(`../assets/images/logos/${file}`, import.meta.url).href
 const cb = (domain) => `https://logo.clearbit.com/${domain}`
@@ -52,15 +53,18 @@ export const useRendimientosStore = defineStore('rendimientos', () => {
   const error = ref(null)
 
   // ── Billeteras ────────────────────────────────────────────────────────────────
-  // Sin API pública → datos manuales
+  // Defaults, overridden by scraped data from rendimientos-live.json when available
+  const _scrapedBilleteras = Object.fromEntries(
+    (scrapedData.billeteras || []).filter(b => b.tna != null).map(b => [b.id, b.tna])
+  )
   const billeteras = ref([
-    { id: 'mercadopago', name: 'Mercado Pago', institution: 'Mercado Libre', badge: 'Fondo', logo: localLogo('bmercadopago.png'), color: '#00B1EA', limit: null, tna: 28.00 },
-    { id: 'carrefour', name: 'Carrefour Banco', institution: 'Carrefour', badge: 'Billetera', logo: localLogo('bcarrefour.png'), color: '#E42313', limit: '$4 M', tna: 27.00 },
-    { id: 'fiwind', name: 'Fiwind', institution: 'Fiwind', badge: 'Billetera', logo: localLogo('bfiwind.png'), color: '#F5A623', limit: '$750 K', tna: 23.00 },
-    { id: 'uala', name: 'Ualá', institution: 'Ualá', badge: 'Billetera', logo: localLogo('buala.png'), color: '#5C1BE3', limit: '$1 M', tna: 23.00 },
-    { id: 'personal', name: 'Personal Pay', institution: 'Telecom', badge: 'Billetera', logo: localLogo('bppay.jpg'), color: '#FF6B00', limit: '$3 M', tna: 23.00 },
-    { id: 'naranjax', name: 'Naranja X', institution: 'Naranja', badge: 'Billetera', logo: localLogo('bnaranjax.jpg'), color: '#FF6B35', limit: '$4 M', tna: 23.00 },
-    { id: 'brubank', name: 'Brubank', institution: 'Brubank', badge: 'Billetera', logo: localLogo('bbrubank.svg'), color: '#0066FF', limit: null, tna: 22.00 },
+    { id: 'mercadopago', name: 'Mercado Pago', institution: 'Mercado Libre', badge: 'Fondo', logo: localLogo('bmercadopago.png'), color: '#00B1EA', limit: null, tna: _scrapedBilleteras.mercadopago ?? 28.00 },
+    { id: 'carrefour', name: 'Carrefour Banco', institution: 'Carrefour', badge: 'Billetera', logo: localLogo('bcarrefour.png'), color: '#E42313', limit: '$4 M', tna: _scrapedBilleteras.carrefour ?? 27.00 },
+    { id: 'fiwind', name: 'Fiwind', institution: 'Fiwind', badge: 'Billetera', logo: localLogo('bfiwind.png'), color: '#F5A623', limit: '$750 K', tna: _scrapedBilleteras.fiwind ?? 23.00 },
+    { id: 'uala', name: 'Ualá', institution: 'Ualá', badge: 'Billetera', logo: localLogo('buala.png'), color: '#5C1BE3', limit: '$1 M', tna: _scrapedBilleteras.uala ?? 23.00 },
+    { id: 'personal', name: 'Personal Pay', institution: 'Telecom', badge: 'Billetera', logo: localLogo('bppay.jpg'), color: '#FF6B00', limit: '$3 M', tna: _scrapedBilleteras.personal ?? 23.00 },
+    { id: 'naranjax', name: 'Naranja X', institution: 'Naranja', badge: 'Billetera', logo: localLogo('bnaranjax.jpg'), color: '#FF6B35', limit: '$4 M', tna: _scrapedBilleteras.naranjax ?? 23.00 },
+    { id: 'brubank', name: 'Brubank', institution: 'Brubank', badge: 'Billetera', logo: localLogo('bbrubank.svg'), color: '#0066FF', limit: null, tna: _scrapedBilleteras.brubank ?? 22.00 },
   ])
 
   // ── Especiales ────────────────────────────────────────────────────────────────
@@ -81,36 +85,54 @@ export const useRendimientosStore = defineStore('rendimientos', () => {
     { id: 'premier', name: 'Premier Renta CP en Pesos', clase: 'Clase A', institution: 'Supervielle', tipo: 'Money Market', logo: localLogo('bsupervielle.svg'), color: '#E61E27', patrimonio: '$354 mil M', tna: 21.24 },
   ])
 
-  // ── Plazo Fijo (datos manuales, BCRA no tiene endpoint público por banco) ────
-  const plazofijo = ref([
-    { id: 'voii', name: 'Banco Voii', logo: localLogo('bvoii.png'), color: '#0099D8', tna: 29.00 },
-    { id: 'delsol', name: 'Banco del Sol', logo: localLogo('bdelsol.svg'), color: '#FFA500', tna: 28.50 },
-    { id: 'brubank', name: 'Brubank', logo: localLogo('bbrubank.svg'), color: '#0066FF', tna: 27.00 },
-    { id: 'hipotecario', name: 'Hipotecario', logo: localLogo('bhipotecario.png'), color: '#005B9F', tna: 25.00 },
-    { id: 'bancor', name: 'Bancor', logo: localLogo('bbancor.svg'), color: '#004F9F', tna: 24.50 },
-    { id: 'macro', name: 'Banco Macro', logo: localLogo('bmacro.png'), color: '#005189', tna: 24.00 },
-    { id: 'nacion', name: 'Banco Nación', logo: localLogo('bna.png'), color: '#004A8F', tna: 23.00 },
-    { id: 'icbc', name: 'ICBC', logo: localLogo('bicbc.png'), color: '#CC0000', tna: 22.50 },
-    { id: 'provincia', name: 'Banco Provincia', logo: localLogo('bentrerios.svg'), color: '#00833b', tna: 22.00 },
-    { id: 'santander', name: 'Santander', logo: localLogo('bsantander.png'), color: '#EC0000', tna: 22.00 },
-    { id: 'galicia', name: 'Banco Galicia', logo: localLogo('bgalicia.png'), color: '#E31837', tna: 21.00 },
-    { id: 'bbva', name: 'BBVA', logo: localLogo('bbvaargentina.png'), color: '#004481', tna: 21.00 },
-    { id: 'ciudad', name: 'Banco Ciudad', logo: localLogo('bciudad.png'), color: '#1A1A2E', tna: 21.00 },
-    { id: 'credicoop', name: 'Credicoop', logo: localLogo('bcredicop.png'), color: '#003D99', tna: 21.00 },
-    { id: 'supervielle', name: 'Supervielle', logo: localLogo('bsupervielle.svg'), color: '#E61E27', tna: 21.00 },
-    { id: 'comafi', name: 'Comafi', logo: localLogo('bcomafi.png'), color: '#009B77', tna: 20.00 },
-    { id: 'patagonia', name: 'Banco Patagonia', logo: localLogo('bpatagonia.svg'), color: '#0061A0', tna: 20.00 },
-    { id: 'chubut', name: 'Banco del Chubut', logo: localLogo('bdelchubut.png'), color: '#105099', tna: 20.00 },
-    { id: 'corrientes', name: 'Bco de Corrientes', logo: localLogo('bdecorrientes.svg'), color: '#00833b', tna: 20.00 },
-    { id: 'neuquen', name: 'BPN (Neuquén)', logo: localLogo('bbancodelneuquen.jpg'), color: '#006c9b', tna: 20.00 },
-    { id: 'dino', name: 'Banco Dino', logo: localLogo('bdino.svg'), color: '#343A40', tna: 20.00 },
-    { id: 'entrerios', name: 'Bco Entre Ríos', logo: localLogo('bentrerios.svg'), color: '#E3001B', tna: 20.00 },
-    { id: 'rosario', name: 'BMR (Rosario)', logo: localLogo('bmunicipalrosario.png'), color: '#FF6B00', tna: 20.00 },
-    { id: 'sanjuan', name: 'Banco San Juan', logo: localLogo('bsanjuan.png'), color: '#E3001B', tna: 20.00 },
-    { id: 'santacruz', name: 'Banco Santa Cruz', logo: localLogo('bsantacruz.svg'), color: '#E3001B', tna: 20.00 },
-    { id: 'santafe', name: 'Banco Santa Fe', logo: localLogo('bsantafe.jpg'), color: '#E3001B', tna: 20.00 },
-    { id: 'tdf', name: 'Banco Tierra del Fuego', logo: localLogo('btierradelfuego.png'), color: '#00548d', tna: 20.00 },
-  ])
+  // ── Plazo Fijo (dinámico desde /api/rendimientos → BCRA) ──────────────────────
+  // Logo/color lookup para bancos conocidos; los que no matchean usan fallback
+  const PF_LOGO_MAP = {
+    'NACION':            { logo: localLogo('bna.png'),              color: '#004A8F' },
+    'SANTANDER':         { logo: localLogo('bsantander.png'),       color: '#EC0000' },
+    'GALICIA':           { logo: localLogo('bgalicia.png'),         color: '#E31837' },
+    'BBVA':              { logo: localLogo('bbvaargentina.png'),    color: '#004481' },
+    'MACRO':             { logo: localLogo('bmacro.png'),           color: '#005189' },
+    'ICBC':              { logo: localLogo('bicbc.png'),            color: '#CC0000' },
+    'SUPERVIELLE':       { logo: localLogo('bsupervielle.svg'),     color: '#E61E27' },
+    'PATAGONIA':         { logo: localLogo('bpatagonia.svg'),       color: '#0061A0' },
+    'CIUDAD':            { logo: localLogo('bciudad.png'),          color: '#1A1A2E' },
+    'HIPOTECARIO':       { logo: localLogo('bhipotecario.png'),     color: '#005B9F' },
+    'COMAFI':            { logo: localLogo('bcomafi.png'),          color: '#009B77' },
+    'CREDICOOP':         { logo: localLogo('bcredicop.png'),        color: '#003D99' },
+    'BRUBANK':           { logo: localLogo('bbrubank.svg'),         color: '#0066FF' },
+    'VOII':              { logo: localLogo('bvoii.png'),            color: '#0099D8' },
+    'DEL SOL':           { logo: localLogo('bdelsol.svg'),          color: '#FFA500' },
+    'PROVINCIA DE CORDOBA': { logo: localLogo('bbancor.svg'),       color: '#004F9F' },
+    'CHUBUT':            { logo: localLogo('bdelchubut.png'),       color: '#105099' },
+    'CORRIENTES':        { logo: localLogo('bdecorrientes.svg'),    color: '#00833b' },
+    'NEUQUEN':           { logo: localLogo('bbancodelneuquen.jpg'), color: '#006c9b' },
+    'DINO':              { logo: localLogo('bdino.svg'),            color: '#343A40' },
+    'ENTRE RIOS':        { logo: localLogo('bentrerios.svg'),       color: '#E3001B' },
+    'MUNICIPAL DE ROSARIO': { logo: localLogo('bmunicipalrosario.png'), color: '#FF6B00' },
+    'SAN JUAN':          { logo: localLogo('bsanjuan.png'),         color: '#E3001B' },
+    'SANTA CRUZ':        { logo: localLogo('bsantacruz.svg'),       color: '#E3001B' },
+    'SANTA FE':          { logo: localLogo('bsantafe.jpg'),         color: '#E3001B' },
+    'TIERRA DEL FUEGO':  { logo: localLogo('btierradelfuego.png'),  color: '#00548d' },
+  }
+
+  function pfMetaFor(entidad) {
+    const upper = entidad.toUpperCase()
+    for (const [key, meta] of Object.entries(PF_LOGO_MAP)) {
+      if (upper.includes(key)) return meta
+    }
+    return { logo: null, color: '#6B7280' }
+  }
+
+  function shortName(entidad) {
+    return entidad
+      .replace(/^BANCO\s+/i, '')
+      .replace(/\s+S\.?A\.?U?\.?\s*$/i, '')
+      .replace(/\s+ARGENTINA\s*/i, ' ')
+      .trim()
+  }
+
+  const plazofijo = ref([])
 
   // ── LECAPs (base estática; se actualiza con precios de BYMA via /api/rendimientos)
   const lecaps = ref([
@@ -169,40 +191,29 @@ export const useRendimientosStore = defineStore('rendimientos', () => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`)
       const data = await r.json()
 
-      // Fondos CAFCI: mapear a formato de la view
-      if (data.fondos?.length) {
-        fondos.value = data.fondos.map(f => {
-          const meta = metaForGerente(f.gerente)
+      // Plazo Fijo: build ENTIRE list from live BCRA data
+      if (data.plazoFijo?.length) {
+        plazofijo.value = data.plazoFijo.map((bank, i) => {
+          const meta = pfMetaFor(bank.entidad)
           return {
-            id: `cafci-${f.id}-${f.claseId}`,
-            name: f.nombre,
-            clase: f.clase,
-            institution: f.gerente,
-            tipo: f.tipo,
-            logo: meta.logo,
+            id:   `pf-${i}`,
+            name: shortName(bank.entidad),
+            logo: meta.logo || bank.logo || null,  // local → BCRA logo → null
             color: meta.color,
-            patrimonio: fmtPatrimonio(f.patrimonio),
-            tna: f.tna,
+            tna:  bank.tnaClientes,
           }
         })
       }
 
-      // LECAPs BYMA: actualizar precios (TEM y TNA los calculamos desde precio)
-      if (data.lecaps?.length) {
-        lecaps.value = lecaps.value.map(l => {
-          const live = data.lecaps.find(d => d.ticker === l.ticker)
-          if (!live?.precio) return l
-          return { ...l, precio: live.precio }
-        })
-      }
-
-      // Soberanos BYMA: actualizar paridad
-      if (data.soberanos?.length) {
-        soberanos.value = soberanos.value.map(s => {
-          const live = data.soberanos.find(d => d.ticker === s.ticker)
-          if (!live?.precio) return s
-          return { ...s, paridad: live.precio }
-        })
+      // Billeteras: update TNAs from live rendimientos
+      if (data.billeteras?.length) {
+        for (const live of data.billeteras) {
+          const lower = live.entidad.toLowerCase()
+          const match = billeteras.value.find(b =>
+            lower.includes(b.id) || lower.includes(b.name.toLowerCase())
+          )
+          if (match) match.tna = live.tna
+        }
       }
 
       // Fecha de actualización
@@ -214,7 +225,6 @@ export const useRendimientosStore = defineStore('rendimientos', () => {
     } catch (e) {
       error.value = e.message
       console.warn('[rendimientos] fetchAll failed, usando datos estáticos:', e.message)
-      // fallback: usar fecha de hoy como lastUpdated
       lastUpdated.value = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
     } finally {
       loading.value = false

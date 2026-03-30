@@ -80,8 +80,14 @@
 
     <!-- ── Plazo Fijo ──────────────────────────────────────────────────────── -->
     <template v-if="activeTab === 'plazo'">
-      <SectionTitle title="Plazo fijo bancario" subtitle="Tasas referenciales a 30 días para persona humana, sin monto mínimo" />
-      <div class="space-y-2">
+      <SectionTitle title="Plazo fijo bancario" subtitle="Tasas referenciales a 30 días para persona humana · Fuente: BCRA" />
+
+      <!-- Loading state -->
+      <div v-if="store.plazofijo.length === 0 && store.loading" class="space-y-2">
+        <div v-for="n in 6" :key="n" class="h-20 rounded-2xl animate-pulse" :style="{ background: 'var(--surface-2)' }" />
+      </div>
+
+      <div v-else class="space-y-2">
         <div
           v-for="banco in store.plazofijo"
           :key="banco.id"

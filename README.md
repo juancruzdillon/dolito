@@ -2,7 +2,7 @@
   <br />
   <img src="public/favicon.svg" width="64" height="64" alt="Dolito" />
   <h1>dolito</h1>
-  <p><strong>El precio real del dólar para el argentino de a pie.</strong></p>
+  <p><strong>El precio real del dólar para el argentino que quiere entrar en finanzas y no sabe cómo.</strong></p>
   <p>Cotizaciones en vivo · MEP con comisiones reales · Calculadoras · Guía para invertir</p>
   <br />
 

@@ -112,7 +112,7 @@ const quickLinks = [
     icon: Calculator,    bg: 'var(--green-bg)',           iconColor: 'var(--green)',
   },
   {
-    to: '/aprender',     label: 'Aprender a invertir',   desc: 'Guía para el argentino de a pie',
+    to: '/aprender',     label: 'Aprender a invertir',   desc: 'Guía para el argentino que quiere entrar en finanzas y no sabe cómo',
     icon: BookOpen,      bg: 'rgba(139,92,246,.12)',      iconColor: '#8b5cf6',
   },
 ]

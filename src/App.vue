@@ -10,6 +10,7 @@
       <RouterView />
     </main>
     <FooterBar />
+    <ChatDoli />
   </div>
 </template>
 
@@ -20,6 +21,7 @@ import NavBar from './components/layout/NavBar.vue'
 import RatesTickerBar from './components/layout/RatesTickerBar.vue'
 import NewsTickerBar from './components/layout/NewsTickerBar.vue'
 import FooterBar from './components/layout/FooterBar.vue'
+import ChatDoli from './components/chat/ChatDoli.vue'
 import AppLoader from './components/ui/AppLoader.vue'
 import { useDolarStore } from './stores/dolar.js'
 import { useBrokersStore } from './stores/brokers.js'

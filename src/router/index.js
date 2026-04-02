@@ -49,6 +49,30 @@ const routes = [
     component: () => import('../views/MonitorGlobalView.vue'),
     meta: { title: 'Monitor Global — Mercados Mundiales en Tiempo Real' }
   },
+  {
+    path: '/privacidad',
+    name: 'privacy',
+    component: () => import('../views/legal/PrivacyView.vue'),
+    meta: { title: 'Política de Privacidad' }
+  },
+  {
+    path: '/terminos',
+    name: 'terms',
+    component: () => import('../views/legal/TermsView.vue'),
+    meta: { title: 'Términos y Condiciones' }
+  },
+  {
+    path: '/sobre-nosotros',
+    name: 'about',
+    component: () => import('../views/legal/AboutView.vue'),
+    meta: { title: 'Sobre Nosotros' }
+  },
+  {
+    path: '/contacto',
+    name: 'contact',
+    component: () => import('../views/legal/ContactView.vue'),
+    meta: { title: 'Contacto' }
+  },
 ]
 
 export const router = createRouter({

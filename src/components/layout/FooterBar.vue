@@ -30,6 +30,15 @@
               <li><RouterLink to="/aprender"     class="hover:text-brand-500 transition-colors">Aprender</RouterLink></li>
             </ul>
           </div>
+          <div>
+            <p class="font-semibold mb-2" :style="{ color: 'var(--text-2)' }">Legal y Contacto</p>
+            <ul class="space-y-1.5">
+              <li><RouterLink to="/sobre-nosotros" class="hover:text-brand-500 transition-colors">Sobre Nosotros</RouterLink></li>
+              <li><RouterLink to="/privacidad"     class="hover:text-brand-500 transition-colors">Privacidad</RouterLink></li>
+              <li><RouterLink to="/terminos"       class="hover:text-brand-500 transition-colors">Términos y Condiciones</RouterLink></li>
+              <li><RouterLink to="/contacto"       class="hover:text-brand-500 transition-colors">Contacto</RouterLink></li>
+            </ul>
+          </div>
         </div>
       </div>
 

@@ -83,6 +83,33 @@
           <ArrowRight :size="15" class="flex-shrink-0 opacity-30 group-hover:opacity-80 transition-opacity" :style="{ color: 'var(--text)' }" />
         </RouterLink>
       </section>
+
+      <!-- Educational SEO Content -->
+      <section class="mt-12 pt-8 border-t" :style="{ borderColor: 'var(--border)' }">
+        <h2 class="text-xl font-bold mb-4" :style="{ color: 'var(--text)' }">Guía Rápida: Entendiendo el Dólar en Argentina</h2>
+        <div class="space-y-6 text-sm leading-relaxed" :style="{ color: 'var(--text-2)' }">
+          
+          <div>
+            <h3 class="font-semibold text-base mb-1" :style="{ color: 'var(--text)' }">¿Qué es el Dólar Blue?</h3>
+            <p>El término <strong>Dólar Blue</strong> —también conocido como paralelo o informal— se refiere al dólar estadounidense que se compra y vende en el mercado no oficial (cuevas cambiarias o 'arbolitos'). Debido a las restricciones cambiarias vigentes, su valor suele ser superior al oficial y actúa como un termómetro de las expectativas económicas en el país.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-base mb-1" :style="{ color: 'var(--text)' }">¿Qué es el Dólar MEP (Bolsa)?</h3>
+            <p>El <strong>Dólar MEP</strong> (Mercado Electrónico de Pagos) es una forma 100% legal de adquirir dólares sin los límites de compra del mercado oficial. Consiste en la compra de un bono en pesos (generalmente AL30 o GD30) y su posterior venta en dólares. En Dolito, calculamos las cotizaciones MEP incorporando las comisiones reales de los principales brokers de Argentina, para que sepas exactamente cuántos dólares recibirás.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-base mb-1" :style="{ color: 'var(--text)' }">¿Por qué hay tantas cotizaciones?</h3>
+            <p>Argentina posee un régimen de control de cambios (el "cepo"). Esto genera un mercado desdoblado donde conviven el mercado mayorista (para exportadores/importadores), el mercado minorista, y distintas alternativas para dolarizarse indirectamente (MEP o CCL) que varían según el volumen, la legalidad y la accesibilidad para el ciudadano común.</p>
+          </div>
+
+          <p class="text-xs italic" :style="{ color: 'var(--text-3)' }">
+            Nota: Toda la información provista en esta plataforma es referencial y obtenida a través de promedios de mercado o APIs públicas como DolarAPI y ArgentinaDatos. Ver <RouterLink to="/terminos" class="underline hover:text-brand-500" :style="{ color: 'var(--brand)' }">Términos y Condiciones</RouterLink> para más detalles.
+          </p>
+
+        </div>
+      </section>
     </template>
   </div>
 </template>

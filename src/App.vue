@@ -11,6 +11,7 @@
     </main>
     <FooterBar />
     <ChatDoli />
+    <CookieBanner />
   </div>
 </template>
 
@@ -23,6 +24,7 @@ import NewsTickerBar from './components/layout/NewsTickerBar.vue'
 import FooterBar from './components/layout/FooterBar.vue'
 import ChatDoli from './components/chat/ChatDoli.vue'
 import AppLoader from './components/ui/AppLoader.vue'
+import CookieBanner from './components/ui/CookieBanner.vue'
 import { useDolarStore } from './stores/dolar.js'
 import { useBrokersStore } from './stores/brokers.js'
 

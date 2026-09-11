@@ -20,7 +20,7 @@
     "note": "0.50% (Mep/Bonos - Exento de IVA)",
     "scraped": true,
     "lastUpdated": "2026-09",
-    "lastChecked": "2026-09-10T14:47:42.222Z"
+    "lastChecked": "2026-09-11T14:50:28.233Z"
   },
   {
     "id": "bullmarket",
@@ -42,7 +42,7 @@
     "note": "0.50% (Mep/Bonos - Exento de IVA)",
     "scraped": true,
     "lastUpdated": "2026-09",
-    "lastChecked": "2026-09-10T14:47:47.692Z"
+    "lastChecked": "2026-09-11T14:50:33.838Z"
   },
   {
     "id": "cocos",
@@ -65,7 +65,7 @@
     "note": "0.45% (Mep/Bonos - Exento de IVA)",
     "scraped": true,
     "lastUpdated": "2026-09",
-    "lastChecked": "2026-09-10T14:47:50.163Z"
+    "lastChecked": "2026-09-11T14:50:38.394Z"
   },
   {
     "id": "balanz",
@@ -87,6 +87,6 @@
     "note": "0.50% (Mep/Bonos - Exento de IVA)",
     "scraped": true,
     "lastUpdated": "2026-09",
-    "lastChecked": "2026-09-10T14:47:52.335Z"
+    "lastChecked": "2026-09-11T14:50:40.754Z"
   }
 ]
